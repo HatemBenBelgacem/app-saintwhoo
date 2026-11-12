@@ -32,6 +32,7 @@
   - [x] ANF-005 Shop: Produkte erfassen und anzeigen – spezifiziert ([features/ANF-005](features/ANF-005-shop-produkte.md))
   - [ ] ANF-005 Annahmen bestätigen (CHF inkl. MWST, Bezeichnung „Produkt“, Ausverkaufte sichtbar)
   - [x] ANF-005 umsetzen (Migration `products`, Verwaltung `/produkte`, Shop `/shop`, Tests für AK-1 bis AK-18)
+  - [x] ANF-005 Teil C: Produktbild mit Bildnachweis + 5 Testprodukte mit Commons-Fotos
   - [ ] ANF-005 Löschdialog „Abbrechen“ im Browser prüfen bzw. als Playwright-Test
   - [x] ANF-006 Eventliste – spezifiziert ([features/ANF-006](features/ANF-006-eventliste.md))
   - [ ] ANF-006 Annahmen bestätigen (kein Datum/Ort, kein Entwurfs-Status, Beschreibung Pflicht)

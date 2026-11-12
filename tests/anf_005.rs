@@ -6,7 +6,8 @@
 #![cfg(feature = "ssr")]
 
 use app_saintwhoo::products::model::{
-    CreateOutcome, DeleteOutcome, ProductInput, ProductStatus, ShopSort, UpdateOutcome, format_chf, msg,
+    CreateOutcome, DeleteOutcome, ProductImage, ProductInput, ProductStatus, ShopSort, UpdateOutcome,
+    format_chf, msg,
 };
 use app_saintwhoo::products::repo;
 use sqlx::PgPool;
@@ -20,6 +21,7 @@ fn input(name: &str, sku: &str, price: &str, stock: &str, status: &str) -> Produ
         price: price.into(),
         stock: stock.into(),
         status: status.into(),
+        ..Default::default()
     }
 }
 
@@ -277,4 +279,56 @@ async fn ak18_datenbank_lehnt_ungueltiges_ab(pool: PgPool) {
     sqlx::query(insert).execute(&pool).await.unwrap();
     assert!(sqlx::query(insert).execute(&pool).await.is_err());
     assert_eq!(count(&pool).await, 1);
+}
+
+// ---------- Teil C: Produktbild ----------
+
+fn with_image(url: &str, credit: &str) -> ProductInput {
+    ProductInput { image_url: url.into(), image_credit: credit.into(), ..input("Bild", "B-1", "1", "1", "active") }
+}
+
+#[sqlx::test]
+async fn ak19_bild_wird_gespeichert_und_im_shop_geliefert(pool: PgPool) {
+    let id = create(&pool, &with_image("/images/produkte/a.jpg", "Foto: Test (CC0)")).await;
+    let expected = Some(ProductImage { url: "/images/produkte/a.jpg".into(), credit: "Foto: Test (CC0)".into() });
+
+    assert_eq!(repo::find(&pool, id).await.unwrap().unwrap().image, expected);
+    assert_eq!(repo::find_active(&pool, id).await.unwrap().unwrap().image, expected);
+    assert_eq!(repo::shop(&pool, 1, ShopSort::Newest).await.unwrap().items[0].image, expected);
+
+    // Bild beim Bearbeiten entfernen
+    let out = repo::update(&pool, id, &with_image("", "")).await.unwrap();
+    assert_eq!(out, UpdateOutcome::Updated { id });
+    assert_eq!(repo::find(&pool, id).await.unwrap().unwrap().image, None);
+}
+
+#[sqlx::test]
+async fn ak20_ungueltiges_bild_speichert_nichts(pool: PgPool) {
+    let e = invalid(repo::create(&pool, &with_image("/a.jpg", "")).await.unwrap());
+    assert_eq!(e.image_credit.as_deref(), Some(msg::IMAGE_CREDIT_MISSING));
+    let e = invalid(repo::create(&pool, &with_image("bild.jpg", "Foto")).await.unwrap());
+    assert_eq!(e.image_url.as_deref(), Some(msg::IMAGE_URL_INVALID));
+    assert_eq!(count(&pool).await, 0);
+}
+
+#[sqlx::test]
+async fn ak21_datenbank_lehnt_ungueltige_bilddaten_ab(pool: PgPool) {
+    let bad: [(Option<&str>, Option<&str>); 4] = [
+        (Some("/a.jpg"), None),
+        (None, Some("Foto")),
+        (Some("ftp://x/a.jpg"), Some("F")),
+        (Some("/mit leer.jpg"), Some("F")),
+    ];
+    for (i, (url, credit)) in bad.into_iter().enumerate() {
+        let res = sqlx::query(
+            "INSERT INTO products (name, sku, price_cents, image_url, image_credit) VALUES ('X', $1, 100, $2, $3)",
+        )
+        .bind(format!("IMG-{i}"))
+        .bind(url)
+        .bind(credit)
+        .execute(&pool)
+        .await;
+        assert!(res.is_err(), "DB hätte ablehnen müssen: {url:?} / {credit:?}");
+    }
+    assert_eq!(count(&pool).await, 0);
 }

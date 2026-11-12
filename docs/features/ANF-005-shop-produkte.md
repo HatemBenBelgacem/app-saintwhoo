@@ -11,10 +11,11 @@
 **Beschreibung**
 Shop-Verwalter:innen können Shop-Artikel erfassen und pflegen. Besucher:innen sehen alle aktiven Shop-Artikel in einem öffentlichen Shop und können jeden Artikel im Detail ansehen.
 
-Die Anforderung besteht aus zwei Teilen:
+Die Anforderung besteht aus drei Teilen:
 
 - **Teil A – Produkte verwalten:** Erfassen, Anzeigen, Bearbeiten und Löschen nach dem CRUD-Standard aus ANF-002.
 - **Teil B – Shop-Ansicht:** Öffentliche Übersicht und Produktseite für Besucher:innen.
+- **Teil C – Produktbild:** Foto mit Bildnachweis, gleiche Regeln wie beim Artikelbild ([ANF-004](ANF-004-artikelbild.md)). Ergänzt am 13.11.2026.
 
 > **Begriff:** Im Projekt bezeichnet „Artikel“ bereits Magazin-Artikel (ANF-001 bis ANF-003, Adresse `/artikel`). Shop-Artikel heißen deshalb in Code, Datenbank und Adressen **Produkt** (`products`, `/produkte`). In der Oberfläche darf trotzdem „Artikel“ stehen, wenn das fachlich gewünscht ist (siehe Annahmen).
 
@@ -129,6 +130,26 @@ Es gelten alle Regeln R-1 bis R-10 aus [ANF-002 Teil A](ANF-002-crud-datensaetze
 
 ---
 
+## Teil C – Produktbild
+
+| Feld | Typ | Pflicht | Regeln |
+|---|---|---|---|
+| Bild-Adresse | Text, einzeilig | nein | Wie [ANF-004](ANF-004-artikelbild.md#felder-neu-beim-erstellen-und-bearbeiten): `https://…` oder `/…` (z. B. `/images/produkte/name.jpg`), keine Leerzeichen, höchstens 500 Zeichen |
+| Bildnachweis | Text, einzeilig | nur mit Bild-Adresse | Höchstens 200 Zeichen, z. B. „Foto: Name / Wikimedia Commons (CC BY 2.0)“ |
+
+Ohne Bild-Adresse wird kein Bildnachweis gespeichert. Die Fehlertexte sind dieselben wie in ANF-004.
+
+| Ort | Darstellung |
+|---|---|
+| Shop-Karten | Bild füllt die quadratische Fläche (zugeschnitten), Bildnachweis klein unten rechts im Bild |
+| Produktseite | Großes quadratisches Bild, Nachweis als Bildunterschrift |
+| Detailseite (Verwaltung) | Bild mit Nachweis über den Angaben |
+| Ohne Bild | Wie bisher die farbige Fläche mit Anfangsbuchstaben |
+
+Alternativtext ist der Produktname.
+
+---
+
 ## Abnahmekriterien
 
 | Nr. | Gegeben | Wenn | Dann |
@@ -151,13 +172,16 @@ Es gelten alle Regeln R-1 bis R-10 aus [ANF-002 Teil A](ANF-002-crud-datensaetze
 | AK-16 | ein Produkt im Status *Entwurf* oder eine unbekannte ID | `/shop/<id>` aufgerufen wird | erscheint die 404-Seite (Status 404) |
 | AK-17 | die Shop-Übersicht | auf Handy, Tablet und Desktop angesehen | passt sich das Raster an (1 / 2 / 3–4 Spalten), nichts ragt seitlich heraus |
 | AK-18 | ungültige Werte | Erstellen oder Bearbeiten direkt an den Server geschickt wird (ohne Formular) | prüft der Server alle Regeln; die Datenbank verhindert zusätzlich negative Preise/Bestände und doppelte Artikelnummern |
+| AK-19 | Bild-Adresse und Bildnachweis | gespeichert wird | sind beide gespeichert; das Bild erscheint im Shop, auf der Produktseite und in der Verwaltung. Wird die Adresse beim Bearbeiten geleert, erscheint wieder der Platzhalter |
+| AK-20 | Bild-Adresse ohne Nachweis oder ungültige Adresse (`bild.jpg`) | gespeichert wird | erscheint der Fehlertext aus ANF-004 und nichts wird gespeichert |
+| AK-21 | ungültige Bilddaten | direkt an die Datenbank geschickt werden | lehnt die Datenbank sie ab (CHECK-Constraints) |
 
 ## Annahmen (bitte bestätigen)
 
 - **Währung:** nur CHF, Preise inkl. MWST. Keine Rabatte oder Aktionspreise.
 - **Bezeichnung:** In der Verwaltung heißt es „Produkte“. Soll in der Oberfläche stattdessen „Artikel“ stehen?
 - **Ausverkaufte Produkte** bleiben im Shop sichtbar (mit Badge), statt ausgeblendet zu werden.
-- **Bilder:** zunächst farbige Platzhalter wie im Magazin. Bild-Upload kommt mit einer eigenen Anforderung.
+- **Bilder** werden per Adresse angegeben (Teil C). Ohne Bild erscheint der farbige Platzhalter. Hochladen kommt mit einer eigenen Anforderung.
 - **Rechte:** Wie in ANF-002 darf ohne Login jede:r Produkte verwalten. Die Verwaltung wird erst mit einer Login-Anforderung geschützt.
 - **Löschen ist endgültig** (wie ANF-002). Später, mit Bestellungen, wird Löschen von bereits bestellten Produkten evtl. durch „Archivieren“ ersetzt.
 
@@ -175,6 +199,8 @@ Es gelten alle Regeln R-1 bis R-10 aus [ANF-002 Teil A](ANF-002-crud-datensaetze
 | Teil | Ort |
 |---|---|
 | Migration `products` | [migrations/20261114090000_create_products.sql](../../migrations/20261114090000_create_products.sql) |
+| Migration Bild (Teil C) | [migrations/20261114100000_products_image.sql](../../migrations/20261114100000_products_image.sql) |
+| Testbilder + Lizenzen | [public/images/produkte/](../../public/images/produkte/), [CREDITS.json](../../public/images/produkte/CREDITS.json) |
 | Modell, Prüfregeln, Preis-Parser und -Formatierung | [src/products/model.rs](../../src/products/model.rs) (`validate`, `parse_price`, `format_chf`, `Availability`, `ShopSort`) |
 | Server-Funktionen | [src/products/api.rs](../../src/products/api.rs) |
 | SQL | [src/products/repo.rs](../../src/products/repo.rs) (`shop`, `find_active` für den öffentlichen Teil) |
@@ -194,7 +220,7 @@ Es gelten alle Regeln R-1 bis R-10 aus [ANF-002 Teil A](ANF-002-crud-datensaetze
 - **„Bereits vergeben“** prüft der Server vor dem Speichern, damit alle Fehler auf einmal angezeigt werden. Wenn zwei Anfragen gleichzeitig kommen, greift zusätzlich der `UNIQUE`-Constraint. Auch dann erscheint dieselbe Feldmeldung.
 - **Nach dem Erstellen** wird wie beim Bearbeiten zur Detailseite weitergeleitet (`?meldung=gespeichert`). Das funktioniert mit und ohne JavaScript (302).
 - **Sortierung** über einen Bind-Parameter mit `ORDER BY CASE …`, weil sqlx nur feste SQL-Strings erlaubt. Bei gleichem Wert steht das neueste Produkt zuerst. „Name A–Z“ ignoriert Groß- und Kleinschreibung.
-- **Bildfläche:** gleicher Platzhalter wie im Magazin (`CoverImage`), mit der Beschriftung „Bild zum Produkt“ für Screenreader.
+- **Bild:** gleiche Komponente wie im Magazin (`CoverImage`, für Produkte `ProductCover`). Die Regeln für das Bild kommen aus `articles::model` (`is_valid_image_url`, `ArticleImage`) und werden nicht doppelt geschrieben.
 
 **Tests** (`cargo test --features ssr`): Unit-Tests in `src/products/model.rs`, DB-Tests in [tests/anf_005.rs](../../tests/anf_005.rs). Zusätzlich am laufenden Server per HTTP geprüft und mit Screenshots aus Headless-Chrome (1440 px und 390 px).
 
@@ -218,5 +244,22 @@ Es gelten alle Regeln R-1 bis R-10 aus [ANF-002 Teil A](ANF-002-crud-datensaetze
 | AK-16 | DB-Test + HTTP (`/shop/<Entwurf>` und `/shop/999999` → 404) |
 | AK-17 | Screenshots 390 px / 1440 px |
 | AK-18 | DB-Test (Constraints) |
+| AK-19 | Unit + DB-Test + Screenshot |
+| AK-20 | Unit + DB-Test |
+| AK-21 | DB-Test (Constraints) |
 
 Nicht automatisch getestet: „Abbrechen“ im Löschdialog (reines CSS, wie bei ANF-002 AK-10). Das bitte im Browser prüfen.
+
+## Testdaten
+
+Fünf aktive Produkte mit Fotos von Wikimedia Commons, verkleinert auf höchstens 1600 px. Herkunft und Lizenz stehen in [CREDITS.json](../../public/images/produkte/CREDITS.json).
+
+| Produkt | Foto | Lizenz |
+|---|---|---|
+| Leinen-Tasche | Tom Beatty | CC BY 2.0 |
+| Keramik-Tasse | Liinbean | CC BY-SA 4.0 |
+| Wollschal Engadin | smittenkittenorig | CC BY 2.0 |
+| Designer-Leuchte Aurora | Jules Verne Times Two | CC BY-SA 4.0 |
+| Notizbuch A5 | Pink Sherbet Photography | CC BY 2.0 |
+
+Die Produkte selbst stehen nur in der lokalen Entwicklungs-DB, nicht in einer Migration.

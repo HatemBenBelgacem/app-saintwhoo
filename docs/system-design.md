@@ -84,6 +84,8 @@ products (
   price_cents       INTEGER NOT NULL,            -- Rappen, 0 … 9'999'999
   stock             INTEGER NOT NULL DEFAULT 0,  -- >= 0
   status            TEXT NOT NULL DEFAULT 'draft', -- 'draft' | 'active'
+  image_url         TEXT,  -- Teil C: wie articles.image_url
+  image_credit      TEXT,  -- Teil C: Pflicht, wenn image_url gesetzt
   created_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at        TIMESTAMPTZ NOT NULL DEFAULT now()
 )
