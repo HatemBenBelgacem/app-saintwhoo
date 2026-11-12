@@ -1,0 +1,14 @@
+pub mod article_detail;
+pub mod article_edit;
+pub mod article_list;
+pub mod article_new;
+pub mod beitrag;
+pub mod home;
+pub mod not_found;
+pub mod product_detail;
+pub mod product_edit;
+pub mod product_list;
+pub mod product_new;
+pub mod shop;
+pub mod shop_product;
+pub mod status;

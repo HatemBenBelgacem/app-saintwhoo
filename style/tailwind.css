@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+/* Tailwind soll die Klassen in den Leptos-Komponenten finden */
+@source "../src/**/*.rs";
+
+/* DaisyUI 5 – immer helle Ansicht (unabhängig vom System-Darkmode) */
+@plugin "daisyui" {
+  themes: light --default;
+}

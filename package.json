@@ -1,0 +1,9 @@
+{
+  "name": "app-saintwhoo",
+  "private": true,
+  "description": "Frontend-Tooling (Tailwind CSS v4 + DaisyUI 5) für das Leptos-Projekt",
+  "devDependencies": {
+    "daisyui": "^5.8.0",
+    "tailwindcss": "^4.3.5"
+  }
+}
