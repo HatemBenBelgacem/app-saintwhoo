@@ -8,11 +8,12 @@
 # ---------------------------------------------------------------------------
 # Stufe 1: Build
 # ---------------------------------------------------------------------------
-FROM rust:1.96-bookworm AS builder
+# trixie statt bookworm: die fertigen wasm-bindgen-Programme brauchen glibc ≥ 2.38
+FROM rust:1.96-trixie AS builder
 
 # Node.js für Tailwind/DaisyUI (npm ci) – Version wie lokal
-COPY --from=node:24-bookworm-slim /usr/local/bin/node /usr/local/bin/node
-COPY --from=node:24-bookworm-slim /usr/local/lib/node_modules /usr/local/lib/node_modules
+COPY --from=node:24-trixie-slim /usr/local/bin/node /usr/local/bin/node
+COPY --from=node:24-trixie-slim /usr/local/lib/node_modules /usr/local/lib/node_modules
 RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm
 
 RUN rustup target add wasm32-unknown-unknown
@@ -43,13 +44,13 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 # ---------------------------------------------------------------------------
 # Stufe 2: Laufzeit
 # ---------------------------------------------------------------------------
-FROM debian:bookworm-slim AS runtime
+FROM debian:trixie-slim AS runtime
 
 # ca-certificates für TLS zur DB, curl für den Healthcheck
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl \
     && rm -rf /var/lib/apt/lists/* \
-    && useradd --system --uid 10001 --no-create-home --shell /usr/sbin/nologin saintwhoo
+    && useradd --system --uid 999 --no-create-home --shell /usr/sbin/nologin saintwhoo
 
 WORKDIR /app
 COPY --from=builder --chown=root:root /out/app-saintwhoo /app/app-saintwhoo
