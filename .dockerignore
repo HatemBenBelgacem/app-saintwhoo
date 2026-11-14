@@ -1,0 +1,19 @@
+# Nicht in den Docker-Build-Kontext (ANF-010)
+target/
+node_modules/
+.env
+.env.*
+!.env.example
+.git/
+.gitignore
+end2end/
+docs/
+docker/
+tests/
+*.md
+.DS_Store
+.vscode/
+.idea/
+Dockerfile
+.dockerignore
+docker-compose.yml

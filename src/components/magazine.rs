@@ -67,7 +67,7 @@ pub fn CoverImage(
             aria-label=format!("{label}: {title}")
         >
             <span class=format!(
-                "absolute -bottom-[0.18em] left-[0.08em] font-serif font-black leading-none text-white/15 select-none {letter_size}",
+                "absolute -bottom-[0.18em] left-[0.08em] font-display font-black leading-none text-white/15 select-none {letter_size}",
             )>{letter}</span>
             <span class="absolute inset-0 bg-linear-to-t from-black/30 to-transparent"></span>
         </div>
@@ -81,7 +81,7 @@ pub fn Kicker(children: Children, #[prop(optional)] accent: bool) -> impl IntoVi
     view! {
         <p
             class="text-[0.7rem] font-bold uppercase tracking-[0.2em]"
-            class:text-error=accent
+            class:text-primary=accent
             class:text-base-content=move || !accent
         >
             {children()}
@@ -93,7 +93,7 @@ pub fn Kicker(children: Children, #[prop(optional)] accent: bool) -> impl IntoVi
 #[component]
 pub fn SectionTitle(children: Children) -> impl IntoView {
     view! {
-        <h2 class="mb-8 border-b-2 border-base-content pb-2 text-sm font-bold uppercase tracking-[0.25em]">
+        <h2 class="mb-6 font-display text-2xl font-bold">
             {children()}
         </h2>
     }

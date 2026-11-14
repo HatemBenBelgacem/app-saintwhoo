@@ -1,5 +1,10 @@
 pub mod article;
+pub mod cart;
+pub mod event;
 pub mod footer;
 pub mod magazine;
 pub mod navbar;
+pub mod news;
+pub mod player;
 pub mod product;
+pub mod ui;

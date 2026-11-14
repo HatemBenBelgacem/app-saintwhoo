@@ -87,7 +87,7 @@ fn ProductList(data: ProductPage, filter: Option<ProductStatus>) -> impl IntoVie
             Some(_) => (msg::LIST_EMPTY_FILTER, false),
         };
         return view! {
-            <div class="card bg-base-100 shadow">
+            <div class="card border border-base-300 bg-base-200">
                 <div class="card-body items-center text-center">
                     <p>{text}</p>
                     <Show when=move || show_button>
@@ -102,7 +102,7 @@ fn ProductList(data: ProductPage, filter: Option<ProductStatus>) -> impl IntoVie
     let items = data.items.clone();
     view! {
         // Desktop: Tabelle
-        <div class="hidden md:block overflow-x-auto bg-base-100 rounded-box shadow">
+        <div class="hidden md:block overflow-x-auto rounded-box border border-base-300 bg-base-200">
             <table class="table">
                 <thead>
                     <tr>
@@ -135,7 +135,7 @@ fn ProductList(data: ProductPage, filter: Option<ProductStatus>) -> impl IntoVie
 fn ProductRow(product: ProductSummary) -> impl IntoView {
     let id = product.id;
     view! {
-        <tr class="hover:bg-base-200">
+        <tr class="hover:bg-base-300/40">
             <td>
                 <a href=format!("/produkte/{id}") class="link link-hover font-medium">{product.name.clone()}</a>
             </td>
@@ -159,7 +159,7 @@ fn ProductRow(product: ProductSummary) -> impl IntoView {
 fn ProductCard(product: ProductSummary) -> impl IntoView {
     let id = product.id;
     view! {
-        <div class="card bg-base-100 shadow">
+        <div class="card border border-base-300 bg-base-200">
             <div class="card-body p-4 gap-2">
                 <a href=format!("/produkte/{id}") class="card-title link link-hover break-words">{product.name.clone()}</a>
                 <div class="flex flex-wrap items-center gap-2 text-sm">

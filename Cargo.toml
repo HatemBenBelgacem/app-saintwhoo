@@ -12,7 +12,7 @@ leptos_router = { version = "0.8.17" }
 leptos_meta = { version = "0.8.7" }
 leptos_axum = { version = "0.8.10", optional = true }
 axum = { version = "0.8", features = ["macros"], optional = true }
-tokio = { version = "1", features = ["rt-multi-thread", "macros"], optional = true }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal"], optional = true }
 sqlx = { version = "0.9", default-features = false, features = ["runtime-tokio", "tls-rustls", "postgres", "macros", "migrate", "uuid", "chrono"], optional = true }
 dotenvy = { version = "0.15", optional = true }
 tracing = { version = "0.1", optional = true }

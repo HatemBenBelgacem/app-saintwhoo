@@ -52,7 +52,7 @@ pub fn ProductNewPage() -> impl IntoView {
                 _ => None,
             }}
 
-            <div class="card bg-base-100 shadow">
+            <div class="card border border-base-300 bg-base-200">
                 <div class="card-body">
                     // Validierung macht der Server (gleiche Regeln, gleiche Texte)
                     <ActionForm action attr:novalidate=true>

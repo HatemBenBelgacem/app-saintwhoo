@@ -31,6 +31,8 @@ async fn main() {
     };
 
     let app = Router::new()
+        // Healthcheck für Docker (ANF-010): nur `SELECT 1`, kein HTML
+        .route("/health", axum::routing::get(health))
         .leptos_routes_with_context(
             &state,
             routes,
@@ -48,7 +50,50 @@ async fn main() {
 
     tracing::info!("Server läuft auf http://{addr}");
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
-    axum::serve(listener, app.into_make_service()).await.unwrap();
+    axum::serve(listener, app.into_make_service())
+        .with_graceful_shutdown(shutdown_signal())
+        .await
+        .unwrap();
+    tracing::info!("Server beendet");
+}
+
+/// `GET /health`: 200 „ok“, wenn die Datenbank antwortet, sonst 503.
+#[cfg(feature = "ssr")]
+async fn health(
+    axum::extract::State(pool): axum::extract::State<sqlx::PgPool>,
+) -> (axum::http::StatusCode, &'static str) {
+    use axum::http::StatusCode;
+    match sqlx::query("SELECT 1").execute(&pool).await {
+        Ok(_) => (StatusCode::OK, "ok"),
+        Err(e) => {
+            tracing::warn!("Healthcheck: Datenbank nicht erreichbar: {e}");
+            (StatusCode::SERVICE_UNAVAILABLE, "Datenbank nicht erreichbar")
+        }
+    }
+}
+
+/// Wartet auf Ctrl+C oder SIGTERM (`docker stop`), damit laufende Anfragen
+/// noch fertig beantwortet werden.
+#[cfg(feature = "ssr")]
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        tokio::signal::ctrl_c().await.expect("Ctrl+C-Handler fehlgeschlagen");
+    };
+    #[cfg(unix)]
+    let terminate = async {
+        tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+            .expect("SIGTERM-Handler fehlgeschlagen")
+            .recv()
+            .await;
+    };
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = ctrl_c => {},
+        _ = terminate => {},
+    }
+    tracing::info!("Signal empfangen, Server fährt herunter …");
 }
 
 #[cfg(not(feature = "ssr"))]

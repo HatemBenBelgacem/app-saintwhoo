@@ -15,6 +15,7 @@ fn input(url: &str, credit: &str) -> ArticleInput {
         status: "published".into(),
         image_url: url.into(),
         image_credit: credit.into(),
+        ..Default::default()
     }
 }
 

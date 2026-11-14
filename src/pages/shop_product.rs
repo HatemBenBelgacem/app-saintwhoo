@@ -6,6 +6,7 @@ use leptos::prelude::*;
 use leptos_meta::Title;
 
 use crate::articles::model::paragraphs;
+use crate::components::cart::{AddToCartButton, CartButton};
 use crate::components::magazine::Kicker;
 use crate::components::product::{AvailabilityBadge, ProductCover};
 use crate::pages::product_detail::{product_from_params, with_product};
@@ -25,9 +26,10 @@ fn ShopProduct(product: Product) -> impl IntoView {
     view! {
         <Title text=format!("{} – Shop – Saintwhoo", product.name) />
         <div class="py-6 md:py-10">
-            <a href="/shop" class="text-xs font-semibold uppercase tracking-widest text-base-content/60 hover:text-base-content">
-                "← Zurück zum Shop"
-            </a>
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <a href="/shop" class="text-sm font-medium text-muted hover:text-base-content">"← Zurück zum Shop"</a>
+                <CartButton />
+            </div>
 
             <article class="mt-6 grid gap-8 md:grid-cols-2 md:gap-12">
                 <figure>
@@ -46,8 +48,10 @@ fn ShopProduct(product: Product) -> impl IntoView {
                 </figure>
 
                 <div>
-                    <Kicker>{format!("Art.-Nr. {}", product.sku)}</Kicker>
-                    <h1 class="mt-3 font-serif text-4xl font-bold leading-[1.1] break-words hyphens-auto md:text-5xl">
+                    <Kicker>
+                        {if product.brand.is_empty() { format!("Art.-Nr. {}", product.sku) } else { format!("{} · Art.-Nr. {}", product.brand, product.sku) }}
+                    </Kicker>
+                    <h1 class="mt-3 font-display text-4xl font-bold leading-[1.1] break-words hyphens-auto md:text-5xl">
                         {product.name.clone()}
                     </h1>
                     {short.map(|s| view! { <p class="mt-4 text-lg text-base-content/80">{s}</p> })}
@@ -57,6 +61,10 @@ fn ShopProduct(product: Product) -> impl IntoView {
                         <AvailabilityBadge stock=product.stock large=true />
                     </div>
                     <p class="mt-1 text-xs text-base-content/60">"inkl. MWST"</p>
+
+                    <div class="mt-6 flex flex-wrap items-center gap-3">
+                        <AddToCartButton id=product.id name=product.name.clone() price_cents=product.price_cents stock=product.stock wide=true />
+                    </div>
 
                     <div class="mt-8 space-y-4 leading-relaxed">
                         {paras

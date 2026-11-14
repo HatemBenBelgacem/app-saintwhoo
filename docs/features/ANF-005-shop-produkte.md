@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Priorität** | Muss |
-| **Status** | umgesetzt (12.11.2026) |
+| **Status** | umgesetzt (12.11.2026) · erweitert um Kategorie, Marke, Filter und Warenkorb in [ANF-009](ANF-009-design-techno-app.md) Teil D/E (14.11.2026) |
 | **Rolle** | Shop-Verwalter:in, Besucher:in |
 
 **Beschreibung**

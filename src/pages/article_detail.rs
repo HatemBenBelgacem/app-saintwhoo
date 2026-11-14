@@ -56,7 +56,7 @@ fn ArticleDetail(article: Article) -> impl IntoView {
 
             <Flash />
 
-            <article class="card bg-base-100 shadow overflow-hidden">
+            <article class="card overflow-hidden border border-base-300 bg-base-200">
                 {article.image.clone().map(|img| {
                     let credit = img.credit.clone();
                     view! {

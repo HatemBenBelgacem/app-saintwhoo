@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Priorität** | Muss |
-| **Status** | umgesetzt (13.11.2026) |
+| **Status** | umgesetzt (13.11.2026) · **Startseiten-Layout ersetzt durch [ANF-009](ANF-009-design-techno-app.md) Teil C (14.11.2026)**; Leseansicht `/beitrag/<id>` und Regeln für „öffentlich“ gelten weiter |
 | **Rolle** | Besucher:in |
 
 **Beschreibung**

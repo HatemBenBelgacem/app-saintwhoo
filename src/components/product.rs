@@ -7,7 +7,7 @@ use crate::components::article::{Field, server_error_text};
 use crate::components::magazine::CoverImage;
 use crate::products::api::DeleteProduct;
 use crate::products::model::{
-    Availability, DeleteOutcome, FieldErrors, Product, ProductImage, ProductStatus, msg,
+    Availability, DeleteOutcome, FieldErrors, Product, ProductCategory, ProductImage, ProductStatus, msg,
     price_input_value,
 };
 
@@ -19,6 +19,8 @@ pub struct ProductsVersion(pub RwSignal<u32>);
 /// Status *Entwurf*, Bestand 0), mit `initial` vorausgefüllt (Bearbeiten).
 #[component]
 pub fn ProductFields(#[prop(optional)] initial: Option<Product>, errors: Memo<FieldErrors>) -> impl IntoView {
+    let category = initial.as_ref().map(|p| p.category).unwrap_or_default();
+    let brand = initial.as_ref().map(|p| p.brand.clone()).unwrap_or_default();
     let (image_url, image_credit) = match initial.as_ref().and_then(|p| p.image.clone()) {
         Some(i) => (i.url, i.credit),
         None => (String::new(), String::new()),
@@ -70,6 +72,31 @@ pub fn ProductFields(#[prop(optional)] initial: Option<Product>, errors: Memo<Fi
                     placeholder="z. B. TS-001"
                     autocapitalize="characters"
                     aria-required="true"
+                />
+            </Field>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <Field label="Kategorie" error=err(|e| e.category.clone())>
+                <select
+                    name="category"
+                    class="select w-full"
+                    class:select-error=move || errors.get().category.is_some()
+                >
+                    {ProductCategory::ALL
+                        .into_iter()
+                        .map(|c| view! { <option value=c.as_str() selected=c == category>{c.label()}</option> })
+                        .collect_view()}
+                </select>
+            </Field>
+            <Field label="Marke / Künstler:in" hint="optional" error=err(|e| e.brand.clone())>
+                <input
+                    type="text"
+                    name="brand"
+                    value=brand
+                    class="input w-full"
+                    class:input-error=move || errors.get().brand.is_some()
+                    placeholder="z. B. Saintwhoo oder Mara Voss"
                 />
             </Field>
         </div>
