@@ -39,6 +39,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     cargo leptos build --release \
     && mkdir -p /out \
     && cp target/release/app-saintwhoo /out/app-saintwhoo \
+    && strip /out/app-saintwhoo \
     && cp -r target/site /out/site
 
 # ---------------------------------------------------------------------------
@@ -46,9 +47,9 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 # ---------------------------------------------------------------------------
 FROM debian:trixie-slim AS runtime
 
-# ca-certificates für TLS zur DB, curl für den Healthcheck
+# ca-certificates für TLS zur DB. Kein curl: den Healthcheck macht das Binary selbst.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates curl \
+    && apt-get install -y --no-install-recommends ca-certificates \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --system --uid 999 --no-create-home --shell /usr/sbin/nologin saintwhoo
 
@@ -69,6 +70,6 @@ USER saintwhoo
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl -fsS http://127.0.0.1:3000/health || exit 1
+    CMD ["/app/app-saintwhoo", "healthcheck"]
 
 ENTRYPOINT ["/app/app-saintwhoo"]

@@ -7,6 +7,11 @@ async fn main() {
     use leptos::prelude::*;
     use leptos_axum::{LeptosRoutes, generate_route_list};
 
+    // `app-saintwhoo healthcheck`: für den Docker-HEALTHCHECK (kein curl im Image)
+    if std::env::args().nth(1).as_deref() == Some("healthcheck") {
+        std::process::exit(healthcheck());
+    }
+
     dotenvy::dotenv().ok();
     tracing_subscriber::fmt()
         .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
@@ -68,6 +73,40 @@ async fn health(
         Err(e) => {
             tracing::warn!("Healthcheck: Datenbank nicht erreichbar: {e}");
             (StatusCode::SERVICE_UNAVAILABLE, "Datenbank nicht erreichbar")
+        }
+    }
+}
+
+/// Fragt `GET /health` beim eigenen Server ab. Rückgabe 0 = gesund, 1 = nicht gesund.
+/// Port aus `LEPTOS_SITE_ADDR` (Standard 3000), immer über 127.0.0.1.
+#[cfg(feature = "ssr")]
+fn healthcheck() -> i32 {
+    use std::io::{Read, Write};
+    use std::net::{SocketAddr, TcpStream};
+    use std::time::Duration;
+
+    let port = std::env::var("LEPTOS_SITE_ADDR")
+        .ok()
+        .and_then(|a| a.parse::<SocketAddr>().ok())
+        .map_or(3000, |a| a.port());
+    let addr = SocketAddr::from(([127, 0, 0, 1], port));
+    let check = || -> std::io::Result<bool> {
+        let mut stream = TcpStream::connect_timeout(&addr, Duration::from_secs(3))?;
+        stream.set_read_timeout(Some(Duration::from_secs(3)))?;
+        stream.write_all(b"GET /health HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n")?;
+        let mut head = [0u8; 12];
+        stream.read_exact(&mut head)?;
+        Ok(head.starts_with(b"HTTP/1.1 200"))
+    };
+    match check() {
+        Ok(true) => 0,
+        Ok(false) => {
+            eprintln!("healthcheck: /health antwortet nicht mit 200");
+            1
+        }
+        Err(e) => {
+            eprintln!("healthcheck: {e}");
+            1
         }
     }
 }

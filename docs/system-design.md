@@ -200,7 +200,7 @@ Das [`Dockerfile`](../Dockerfile) macht genau das in zwei Stufen:
 | Stufe | Basis | Inhalt |
 |---|---|---|
 | `builder` | `rust:1.96-trixie` + Node 24 | `npm ci`, `cargo-leptos` 0.3.10, `cargo leptos build --release`. cargo-leptos lädt wasm-bindgen (passend zu `Cargo.lock`), wasm-opt und Tailwind selbst. Cache-Mounts für Registry und `target/`. |
-| `runtime` | `debian:trixie-slim` | nur Binary + `site/`, Benutzer `saintwhoo` (ohne Root), `curl` für den Healthcheck auf `/health` |
+| `runtime` | `debian:trixie-slim` | nur Binary + `site/`, Benutzer `saintwhoo` (ohne Root), Healthcheck über `app-saintwhoo healthcheck` (fragt `/health` ab, kein curl im Image) |
 
 Die Migrationen stecken über `sqlx::migrate!` im Binary und laufen beim Start. Bei SIGTERM (`docker stop`) beendet der Server laufende Anfragen und fährt dann herunter (`with_graceful_shutdown`).
 

@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Priorität** | Soll |
-| **Status** | spezifiziert (14.11.2026) |
+| **Status** | umgesetzt (14.11.2026) |
 | **Rolle** | Entwickler:in, Betrieb |
 
 **Beschreibung**
@@ -27,8 +27,10 @@ Mehrstufiger Build (Multi-Stage):
 
 | Stufe | Basis | Aufgabe |
 |---|---|---|
-| **builder** | offizielles Rust-Image (Version wie lokal, `edition = "2024"` → Rust ≥ 1.85) | Node + `npm ci` (Tailwind, DaisyUI), Ziel `wasm32-unknown-unknown`, `cargo-leptos` und `wasm-bindgen-cli` **in exakt der Version aus `Cargo.toml` (`=0.2.130`)** installieren, dann `cargo leptos build --release` |
-| **runtime** | schlankes Debian (`debian:bookworm-slim` o. Ä.) | nur Server-Binary + `target/site` (CSS, WASM, JS, Bilder aus `public/`) |
+| **builder** | `rust:1.96-trixie` + Node 24 | `npm ci` (Tailwind, DaisyUI), Ziel `wasm32-unknown-unknown`, `cargo-leptos` 0.3.10, dann `cargo leptos build --release`. cargo-leptos lädt wasm-bindgen **in exakt der Version aus `Cargo.lock` (0.2.130)**, wasm-opt und Tailwind selbst. Binary wird gestrippt. |
+| **runtime** | `debian:trixie-slim` | nur Server-Binary + `target/site` (CSS, WASM, JS, Bilder aus `public/`) |
+
+*Warum trixie:* Die fertigen wasm-bindgen-Programme brauchen glibc ≥ 2.38; bookworm hat 2.36.
 
 Regeln:
 
@@ -72,7 +74,7 @@ Zwei Dienste:
 
 ## Teil D – Betrieb
 
-- **Healthcheck der App:** `GET /status` antwortet mit HTTP 200. *(Soll: eigener schlanker Endpunkt `/health`, der nur `SELECT 1` prüft und kein HTML rendert.)*
+- **Healthcheck der App:** `GET /health` prüft nur `SELECT 1` und antwortet `200 ok` bzw. `503`. Der Docker-`HEALTHCHECK` ruft `app-saintwhoo healthcheck` auf (fragt `/health` ab) – so braucht das Image kein curl.
 - **Sauberes Beenden:** Bei `docker compose stop` (SIGTERM) beendet sich die App innerhalb von 10 Sekunden, laufende Anfragen werden fertig beantwortet (Axum `with_graceful_shutdown`). *(Soll)*
 - **Logs** gehen auf stdout/stderr, damit `docker compose logs app` sie zeigt.
 - Doku: Abschnitt „Mit Docker starten“ in `docs/index.md` bzw. `CLAUDE.md` (Befehle unten).
@@ -101,6 +103,8 @@ docker compose down -v          # stoppen und Daten löschen
 | AK-8 | `RADIO_STREAM_URL` gesetzt | `/radio` geöffnet wird | wird der Stream angeboten; ohne Variable erscheint „Der Livestream ist zurzeit nicht verfügbar.“ |
 | AK-9 | App läuft | `docker compose stop app` | ist der Container nach höchstens 10 s beendet, im Log steht kein Absturz *(Soll)* |
 | AK-10 | das Runtime-Image | `docker image ls` | ist es kleiner als 150 MB *(Soll)* |
+
+**Prüfung am 14.11.2026** (Docker 29, arm64, eigenes Compose-Projekt auf Port 3080): AK-1 bis AK-10 bestanden. Startseite 200 mit News/Events/Merch, 10/10 Migrationen, CSS/JS/WASM 200, Artikel überlebt `down`/`up`, Benutzer `uid=999(saintwhoo)`, `stop` < 1 s mit Exit 0, Image 147 MB unkomprimiert (46 MB komprimiert). AK-3 (Hydration im Browser) nur über ausgelieferte Dateien geprüft, nicht per Klick.
 
 AK-1 bis AK-9: manuell bzw. als Skript in der CI (`docker compose up -d`, `curl -f http://localhost:3000/status`). Ein Docker-Build in der CI (Phase 3) prüft AK-6 und AK-10 bei jeder Änderung.
 

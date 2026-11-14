@@ -31,7 +31,7 @@ Format: `ANF-<Nr>` (dreistellig) · Priorität **M**uss / **S**oll / **K**ann
 | [ANF-007](features/ANF-007-radio.md) | Radio: Livestream, Sendeplan und Archiv | M | umgesetzt |
 | [ANF-008](features/ANF-008-news-suche-rubrik.md) | News: Rubrik, Suche und Filter | M | umgesetzt |
 | [ANF-009](features/ANF-009-design-techno-app.md) | Design „Techno App“: Look, Navigation, Startseite, Shop-Filter, Warenkorb | M | umgesetzt |
-| [ANF-010](features/ANF-010-docker-container.md) | Docker-Container: App und PostgreSQL mit `docker compose` starten | S | spezifiziert |
+| [ANF-010](features/ANF-010-docker-container.md) | Docker-Container: App und PostgreSQL mit `docker compose` starten | S | umgesetzt |
 
 Jede Anforderung hat eine eigene Datei in [features/](features/).
 

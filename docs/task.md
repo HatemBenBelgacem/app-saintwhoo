@@ -73,5 +73,7 @@ Quelle: Claude-Design-Canvas „Techno App Designvorschlag“ (Version 1).
 - [ ] Tests (Unit + End-to-End mit Playwright in `end2end/`)
 - [ ] CI (fmt, clippy, check für beide Targets)
 - [x] ANF-010 Docker-Container – spezifiziert ([features/ANF-010](features/ANF-010-docker-container.md))
-- [ ] ANF-010 umsetzen: `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `.env.example`, Tests AK-1 bis AK-10
+- [x] ANF-010 umsetzen: `Dockerfile`, `.dockerignore`, `docker-compose.yml` (db + app + icecast), `.env.example`, `/health`, Graceful Shutdown – AK-1 bis AK-10 geprüft
+- [ ] ANF-010 AK-3 im Browser prüfen (Klick auf „+“ im Shop im Container)
+- [ ] Docker-Build in die CI aufnehmen (AK-6, AK-10)
 - [ ] Deployment
