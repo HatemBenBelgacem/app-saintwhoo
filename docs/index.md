@@ -23,7 +23,7 @@ sqlx database create
 cargo leptos watch
 ```
 
-Danach läuft die App unter <http://127.0.0.1:3000>. Die Magazin-Startseite ist öffentlich, die Verwaltung liegt unter `/artikel`, und `/status` zeigt, ob die Datenbankverbindung klappt.
+Danach läuft die App unter <http://127.0.0.1:3010>. Die Magazin-Startseite ist öffentlich, die Verwaltung liegt unter `/artikel`, und `/status` zeigt, ob die Datenbankverbindung klappt.
 
 ## Mit Docker starten (ANF-010)
 

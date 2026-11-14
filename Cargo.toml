@@ -56,8 +56,8 @@ site-pkg-dir = "pkg"
 # Tailwind v4 (+ DaisyUI via @plugin) – cargo-leptos baut das CSS
 tailwind-input-file = "style/tailwind.css"
 assets-dir = "public"
-site-addr = "127.0.0.1:3000"
-reload-port = 3001
+site-addr = "127.0.0.1:3010"
+reload-port = 3011
 end2end-cmd = "npx playwright test"
 end2end-dir = "end2end"
 browserquery = "defaults"

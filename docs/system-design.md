@@ -184,7 +184,7 @@ Jeder neue Datensatz-Typ folgt dem Artikel-Muster:
 | `DATABASE_URL` | `.env` | PostgreSQL-Verbindung |
 | `RUST_LOG` | `.env` | Log-Level (tracing) |
 | `RADIO_STREAM_URL` | `.env` | Adresse des Radio-Livestreams (ANF-007). Leer = „Livestream nicht verfügbar“ |
-| `LEPTOS_SITE_ADDR` | Umgebung | Überschreibt `site-addr` (Standard `127.0.0.1:3000`, im Container `0.0.0.0:3000`) |
+| `LEPTOS_SITE_ADDR` | Umgebung | Überschreibt `site-addr` (Standard `127.0.0.1:3010`, im Container `0.0.0.0:3000`) |
 | `LEPTOS_SITE_ROOT`, `LEPTOS_OUTPUT_NAME`, `LEPTOS_ENV` | Umgebung | Im Docker-Image fest gesetzt (`Dockerfile`), weil `Cargo.toml` dort fehlt |
 | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `APP_PORT` | `.env` | Nur für `docker compose` (ANF-010); die App im Container baut daraus ihre `DATABASE_URL` |
 | `[package.metadata.leptos]` | `Cargo.toml` | Build-Einstellungen von cargo-leptos |

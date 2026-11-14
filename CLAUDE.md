@@ -20,7 +20,7 @@ Anforderungen: [docs/Anforderung.md](docs/Anforderung.md) (Übersicht) + [docs/f
 npm install                      # Tailwind + DaisyUI (einmalig)
 cp .env.example .env             # DATABASE_URL setzen
 sqlx database create             # DB anlegen
-cargo leptos watch               # Dev-Server mit Hot-Reload → http://127.0.0.1:3000
+cargo leptos watch               # Dev-Server mit Hot-Reload → http://127.0.0.1:3010
 cargo leptos build --release     # Produktions-Build
 cargo check --features ssr                                         # Server prüfen
 cargo check --lib --features hydrate --target wasm32-unknown-unknown  # Client prüfen
