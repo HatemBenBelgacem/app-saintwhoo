@@ -3,7 +3,58 @@
 /* Tailwind soll die Klassen in den Leptos-Komponenten finden */
 @source "../src/**/*.rs";
 
-/* DaisyUI 5 – immer helle Ansicht (unabhängig vom System-Darkmode) */
+/* DaisyUI 5 – nur das eigene dunkle Theme (Designvorschlag „Techno App“, Version 1) */
 @plugin "daisyui" {
-  themes: light --default;
+  themes: false;
+}
+
+@plugin "daisyui/theme" {
+  name: "saintwhoo";
+  default: true;
+  prefersdark: true;
+  color-scheme: dark;
+
+  /* Hintergrund, Fläche, Linie, Text */
+  --color-base-100: #0b0b0c;
+  --color-base-200: #161618;
+  --color-base-300: #2c2c31;
+  --color-base-content: #f3f3ef;
+
+  /* Ein Akzent: Acid-Gelb */
+  --color-primary: #c6ff1a;
+  --color-primary-content: #0b0b0c;
+  --color-secondary: #f3f3ef;
+  --color-secondary-content: #0b0b0c;
+  --color-accent: #c6ff1a;
+  --color-accent-content: #0b0b0c;
+  /* btn-neutral = heller Knopf auf dunklem Grund */
+  --color-neutral: #f3f3ef;
+  --color-neutral-content: #0b0b0c;
+
+  --color-info: #4dd4ff;
+  --color-info-content: #0b0b0c;
+  --color-success: #3ddc84;
+  --color-success-content: #0b0b0c;
+  --color-warning: #ffb02e;
+  --color-warning-content: #0b0b0c;
+  --color-error: #ff5c48;
+  --color-error-content: #0b0b0c;
+
+  /* Runde Karten, Pillen-Knöpfe, keine Schatten */
+  --radius-selector: 2rem;
+  --radius-field: 2rem;
+  --radius-box: 1.25rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+/* Schriften: Space Grotesk für Titel und Zahlen, Inter für Text */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
+  /* Gedämpfter Text (#9A9AA3) */
+  --color-muted: #9a9aa3;
 }

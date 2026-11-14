@@ -7,6 +7,8 @@ pub use crate::articles::model::{ArticleImage as ProductImage, IMAGE_CREDIT_MAX_
 pub const NAME_MAX_CHARS: usize = 120;
 pub const SKU_MAX_CHARS: usize = 40;
 pub const SHORT_DESCRIPTION_MAX_CHARS: usize = 200;
+/// Marke oder Künstler:in (Designvorschlag: Zeile unter dem Namen).
+pub const BRAND_MAX_CHARS: usize = 80;
 /// Höchstpreis 99'999.99 CHF in Rappen.
 pub const PRICE_MAX_CENTS: i32 = 9_999_999;
 /// Bis zu diesem Bestand heißt es „Nur noch <n> verfügbar“.
@@ -30,6 +32,9 @@ pub mod msg {
         "Der Preis muss zwischen 0.00 und 99'999.99 CHF liegen (höchstens 2 Nachkommastellen).";
     pub const STOCK_INVALID: &str = "Der Lagerbestand muss eine ganze Zahl ab 0 sein.";
     pub const STATUS_INVALID: &str = "Bitte einen gültigen Status wählen.";
+    pub const CATEGORY_INVALID: &str = "Bitte eine gültige Kategorie wählen.";
+    pub const BRAND_TOO_LONG: &str = "Die Marke darf höchstens 80 Zeichen lang sein.";
+    pub const SHOP_EMPTY_CATEGORY: &str = "In dieser Kategorie gibt es zurzeit keine Produkte.";
     // Teil C: Bild (Texte wie ANF-004)
     pub use crate::articles::model::msg::{IMAGE_CREDIT_MISSING, IMAGE_CREDIT_TOO_LONG, IMAGE_URL_INVALID};
 
@@ -69,6 +74,68 @@ impl ProductStatus {
 
     pub fn parse(value: &str) -> Option<Self> {
         Self::ALL.into_iter().find(|s| s.as_str() == value)
+    }
+}
+
+/// Kategorie im Shop (Filter-Chips).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ProductCategory {
+    Hoodie,
+    Shirt,
+    Vinyl,
+    Accessory,
+    #[default]
+    Other,
+}
+
+impl ProductCategory {
+    pub const ALL: [ProductCategory; 5] = [
+        ProductCategory::Hoodie,
+        ProductCategory::Shirt,
+        ProductCategory::Vinyl,
+        ProductCategory::Accessory,
+        ProductCategory::Other,
+    ];
+
+    /// Wert in Formular und Datenbank.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            ProductCategory::Hoodie => "hoodie",
+            ProductCategory::Shirt => "shirt",
+            ProductCategory::Vinyl => "vinyl",
+            ProductCategory::Accessory => "accessory",
+            ProductCategory::Other => "other",
+        }
+    }
+
+    /// Wert in der Adresse des Shops (`?kategorie=…`).
+    pub fn slug(self) -> &'static str {
+        match self {
+            ProductCategory::Hoodie => "hoodies",
+            ProductCategory::Shirt => "t-shirts",
+            ProductCategory::Vinyl => "vinyl",
+            ProductCategory::Accessory => "accessoires",
+            ProductCategory::Other => "sonstiges",
+        }
+    }
+
+    /// Mehrzahl für Filter-Chips.
+    pub fn label(self) -> &'static str {
+        match self {
+            ProductCategory::Hoodie => "Hoodies",
+            ProductCategory::Shirt => "T-Shirts",
+            ProductCategory::Vinyl => "Vinyl",
+            ProductCategory::Accessory => "Accessoires",
+            ProductCategory::Other => "Sonstiges",
+        }
+    }
+
+    pub fn parse(value: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|c| c.as_str() == value)
+    }
+
+    pub fn from_slug(value: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|c| c.slug() == value)
     }
 }
 
@@ -152,6 +219,11 @@ pub struct ProductInput {
     pub image_url: String,
     #[serde(default)]
     pub image_credit: String,
+    /// leer = „Sonstiges“
+    #[serde(default)]
+    pub category: String,
+    #[serde(default)]
+    pub brand: String,
 }
 
 /// Geprüftes Produkt, bereit zum Speichern.
@@ -165,6 +237,8 @@ pub struct ValidProduct {
     pub stock: i32,
     pub status: ProductStatus,
     pub image: Option<ProductImage>,
+    pub category: ProductCategory,
+    pub brand: String,
 }
 
 /// Fehlermeldung pro Feld (`None` = Feld ist in Ordnung).
@@ -178,11 +252,15 @@ pub struct FieldErrors {
     pub status: Option<String>,
     pub image_url: Option<String>,
     pub image_credit: Option<String>,
+    pub category: Option<String>,
+    pub brand: Option<String>,
 }
 
 impl FieldErrors {
     pub fn is_empty(&self) -> bool {
-        self.name.is_none()
+        self.category.is_none()
+            && self.brand.is_none()
+            && self.name.is_none()
             && self.sku.is_none()
             && self.short_description.is_none()
             && self.price.is_none()
@@ -205,6 +283,8 @@ pub struct Product {
     pub stock: i32,
     pub status: ProductStatus,
     pub image: Option<ProductImage>,
+    pub category: ProductCategory,
+    pub brand: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -239,6 +319,7 @@ pub struct ShopItem {
     pub price_cents: i32,
     pub stock: i32,
     pub image: Option<ProductImage>,
+    pub brand: String,
 }
 
 /// Eine Seite des Shops.
@@ -250,12 +331,15 @@ pub struct ShopPage {
     pub total: i64,
 }
 
+// `FieldErrors` ist bewusst ein flacher Wert und entsteht einmal pro Anfrage – Boxen brächte nichts.
+#[allow(clippy::large_enum_variant)]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum CreateOutcome {
     Created { id: i64 },
     Invalid(FieldErrors),
 }
 
+#[allow(clippy::large_enum_variant)]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum UpdateOutcome {
     Updated { id: i64 },
@@ -422,6 +506,19 @@ pub fn validate(input: &ProductInput) -> Result<ValidProduct, FieldErrors> {
         Some(ProductImage { url: image_url.into(), credit: image_credit.into() })
     };
 
+    let category = match input.category.trim() {
+        "" => Some(ProductCategory::default()),
+        c => ProductCategory::parse(c),
+    };
+    if category.is_none() {
+        errors.category = Some(msg::CATEGORY_INVALID.into());
+    }
+
+    let brand = input.brand.trim().to_string();
+    if brand.chars().count() > BRAND_MAX_CHARS {
+        errors.brand = Some(msg::BRAND_TOO_LONG.into());
+    }
+
     if !errors.is_empty() {
         return Err(errors);
     }
@@ -434,6 +531,8 @@ pub fn validate(input: &ProductInput) -> Result<ValidProduct, FieldErrors> {
         stock: stock.expect("geprüft"),
         status: status.expect("geprüft"),
         image,
+        category: category.expect("geprüft"),
+        brand,
     })
 }
 
@@ -609,5 +708,17 @@ mod tests {
         assert_eq!(total_pages(24, SHOP_PAGE_SIZE), 1);
         assert_eq!(total_pages(30, SHOP_PAGE_SIZE), 2);
         assert_eq!(total_pages(21, PAGE_SIZE), 2);
+    }
+
+    #[test]
+    fn kategorie_und_marke() {
+        let p = validate(&input()).unwrap();
+        assert_eq!((p.category, p.brand.as_str()), (ProductCategory::Other, ""));
+        let p = validate(&ProductInput { category: "hoodie".into(), brand: " Saintwhoo ".into(), ..input() }).unwrap();
+        assert_eq!((p.category, p.brand.as_str()), (ProductCategory::Hoodie, "Saintwhoo"));
+        let e = validate(&ProductInput { category: "socken".into(), brand: "x".repeat(81), ..input() }).unwrap_err();
+        assert_eq!(e.category.as_deref(), Some(msg::CATEGORY_INVALID));
+        assert_eq!(e.brand.as_deref(), Some(msg::BRAND_TOO_LONG));
+        assert_eq!(ProductCategory::from_slug("t-shirts"), Some(ProductCategory::Shirt));
     }
 }

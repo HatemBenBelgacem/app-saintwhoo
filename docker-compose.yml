@@ -1,0 +1,60 @@
+# Docker-Dienste für Saintwhoo (ANF-010, ANF-007).
+#
+#   cp .env.example .env              # Passwörter setzen
+#   docker compose up --build         # App + PostgreSQL + Icecast → http://localhost:3000
+#   docker compose up -d icecast      # nur Icecast → http://localhost:8000
+#   docker compose logs -f app
+#   docker compose down               # stoppen (Daten bleiben im Volume pgdata)
+#   docker compose down -v            # stoppen und Daten löschen
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-saintwhoo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD in .env setzen}
+      POSTGRES_DB: ${POSTGRES_DB:-saintwhoo}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # Nur im Compose-Netz erreichbar. Für Zugriff von außen (psql, sqlx) einkommentieren –
+    # Achtung: kollidiert mit einem lokal laufenden PostgreSQL auf 5432.
+    # ports:
+    #   - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  app:
+    build: .
+    image: saintwhoo-app
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-saintwhoo}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-saintwhoo}
+      RADIO_STREAM_URL: ${RADIO_STREAM_URL:-}
+      RUST_LOG: ${RUST_LOG:-info}
+    stop_grace_period: 10s
+    restart: unless-stopped
+
+  icecast:
+    build: ./docker/icecast
+    image: saintwhoo-icecast
+    ports:
+      - "8000:8000"
+    environment:
+      ICECAST_SOURCE_PASSWORD: ${ICECAST_SOURCE_PASSWORD:?ICECAST_SOURCE_PASSWORD in .env setzen}
+      ICECAST_ADMIN_PASSWORD: ${ICECAST_ADMIN_PASSWORD:?ICECAST_ADMIN_PASSWORD in .env setzen}
+      ICECAST_HOSTNAME: ${ICECAST_HOSTNAME:-localhost}
+      ICECAST_MOUNT: ${ICECAST_MOUNT:-/live}
+      ICECAST_MAX_CLIENTS: ${ICECAST_MAX_CLIENTS:-100}
+    restart: unless-stopped
+
+volumes:
+  pgdata:

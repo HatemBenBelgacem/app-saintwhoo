@@ -6,8 +6,8 @@
 use leptos::prelude::*;
 
 use super::model::{
-    CreateOutcome, DeleteOutcome, Product, ProductPage, ProductStatus, ShopPage, ShopSort,
-    UpdateOutcome,
+    CreateOutcome, DeleteOutcome, Product, ProductCategory, ProductPage, ProductStatus, ShopPage,
+    ShopSort, UpdateOutcome,
 };
 
 #[cfg(feature = "ssr")]
@@ -31,6 +31,9 @@ pub async fn create_product(
     // Teil C: optional, damit Anfragen ohne Bildfelder weiter funktionieren
     image_url: Option<String>,
     image_credit: Option<String>,
+    // Erweiterung Designvorschlag: optional für ältere Anfragen
+    category: Option<String>,
+    brand: Option<String>,
 ) -> Result<CreateOutcome, ServerFnError> {
     use super::model::ProductInput;
     let pool = crate::db::pool()?;
@@ -44,6 +47,8 @@ pub async fn create_product(
         status,
         image_url: image_url.unwrap_or_default(),
         image_credit: image_credit.unwrap_or_default(),
+        category: category.unwrap_or_default(),
+        brand: brand.unwrap_or_default(),
     };
     let outcome = super::repo::create(&pool, &input).await.map_err(db_error)?;
     if let CreateOutcome::Created { id } = outcome {
@@ -84,6 +89,9 @@ pub async fn update_product(
     // Teil C: optional, damit Anfragen ohne Bildfelder weiter funktionieren
     image_url: Option<String>,
     image_credit: Option<String>,
+    // Erweiterung Designvorschlag: optional für ältere Anfragen
+    category: Option<String>,
+    brand: Option<String>,
 ) -> Result<UpdateOutcome, ServerFnError> {
     use super::model::ProductInput;
     let pool = crate::db::pool()?;
@@ -97,6 +105,8 @@ pub async fn update_product(
         status,
         image_url: image_url.unwrap_or_default(),
         image_credit: image_credit.unwrap_or_default(),
+        category: category.unwrap_or_default(),
+        brand: brand.unwrap_or_default(),
     };
     let outcome = super::repo::update(&pool, id, &input).await.map_err(db_error)?;
     if let UpdateOutcome::Updated { id } = outcome {
@@ -118,9 +128,13 @@ pub async fn delete_product(id: i64) -> Result<DeleteOutcome, ServerFnError> {
 
 /// Shop: aktive Produkte, eine Seite, sortiert.
 #[server]
-pub async fn shop_products(page: u32, sort: ShopSort) -> Result<ShopPage, ServerFnError> {
+pub async fn shop_products(
+    page: u32,
+    sort: ShopSort,
+    category: Option<ProductCategory>,
+) -> Result<ShopPage, ServerFnError> {
     let pool = crate::db::pool()?;
-    super::repo::shop(&pool, page, sort).await.map_err(db_error)
+    super::repo::shop_filtered(&pool, page, sort, category).await.map_err(db_error)
 }
 
 /// Shop: ein aktives Produkt (`None` = 404).

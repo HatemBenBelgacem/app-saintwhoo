@@ -7,7 +7,8 @@
 use leptos::prelude::*;
 
 use super::model::{
-    Article, ArticlePage, ArticleStatus, ArticleTeaser, CreateOutcome, DeleteOutcome, UpdateOutcome,
+    Article, ArticleCategory, ArticlePage, ArticleStatus, ArticleTeaser, CreateOutcome, DeleteOutcome,
+    NewsPage, UpdateOutcome,
 };
 
 #[cfg(feature = "ssr")]
@@ -27,6 +28,8 @@ pub async fn create_article(
     // ANF-004: optional, damit ältere Clients ohne Bildfelder weiter funktionieren
     image_url: Option<String>,
     image_credit: Option<String>,
+    // ANF-008: optional, damit Anfragen ohne Rubrik weiter funktionieren
+    category: Option<String>,
 ) -> Result<CreateOutcome, ServerFnError> {
     use super::model::ArticleInput;
     let pool = crate::db::pool()?;
@@ -37,6 +40,7 @@ pub async fn create_article(
         status,
         image_url: image_url.unwrap_or_default(),
         image_credit: image_credit.unwrap_or_default(),
+        category: category.unwrap_or_default(),
     };
     super::repo::create(&pool, &input).await.map_err(db_error)
 }
@@ -59,6 +63,7 @@ pub async fn get_article(id: i64) -> Result<Option<Article>, ServerFnError> {
 }
 
 /// ANF-002: Artikel ändern. Bei Erfolg Weiterleitung zur Detailseite.
+#[allow(clippy::too_many_arguments)]
 #[server]
 pub async fn update_article(
     id: i64,
@@ -68,6 +73,8 @@ pub async fn update_article(
     status: String,
     image_url: Option<String>,
     image_credit: Option<String>,
+    // ANF-008: optional, damit Anfragen ohne Rubrik weiter funktionieren
+    category: Option<String>,
 ) -> Result<UpdateOutcome, ServerFnError> {
     use super::model::ArticleInput;
     let pool = crate::db::pool()?;
@@ -78,6 +85,7 @@ pub async fn update_article(
         status,
         image_url: image_url.unwrap_or_default(),
         image_credit: image_credit.unwrap_or_default(),
+        category: category.unwrap_or_default(),
     };
     let outcome = super::repo::update(&pool, id, &input).await.map_err(db_error)?;
     if let UpdateOutcome::Updated { id } = outcome {
@@ -109,4 +117,22 @@ pub async fn front_page_articles() -> Result<Vec<ArticleTeaser>, ServerFnError> 
 pub async fn get_published_article(id: i64) -> Result<Option<Article>, ServerFnError> {
     let pool = crate::db::pool()?;
     super::repo::find_published(&pool, id).await.map_err(db_error)
+}
+
+/// ANF-008: News-Seite mit Suche und Rubrik-Filter.
+#[server]
+pub async fn news_articles(
+    query: String,
+    category: Option<ArticleCategory>,
+    page: u32,
+) -> Result<NewsPage, ServerFnError> {
+    let pool = crate::db::pool()?;
+    super::repo::news(&pool, &query, category, page).await.map_err(db_error)
+}
+
+/// Startseite (Designvorschlag): die neuesten `limit` News.
+#[server]
+pub async fn latest_news(limit: i64) -> Result<Vec<ArticleTeaser>, ServerFnError> {
+    let pool = crate::db::pool()?;
+    super::repo::front_page(&pool, limit.clamp(1, 20)).await.map_err(db_error)
 }

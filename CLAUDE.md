@@ -20,13 +20,14 @@ Anforderungen: [docs/Anforderung.md](docs/Anforderung.md) (Übersicht) + [docs/f
 npm install                      # Tailwind + DaisyUI (einmalig)
 cp .env.example .env             # DATABASE_URL setzen
 sqlx database create             # DB anlegen
-cargo leptos watch               # Dev-Server mit Hot-Reload → http://127.0.0.1:3000
+cargo leptos watch               # Dev-Server mit Hot-Reload → http://127.0.0.1:3010
 cargo leptos build --release     # Produktions-Build
 cargo check --features ssr                                         # Server prüfen
 cargo check --lib --features hydrate --target wasm32-unknown-unknown  # Client prüfen
 cargo test --features ssr        # Unit- + DB-Tests (DATABASE_URL muss gesetzt sein, sqlx::test legt Test-DBs an)
 cargo clippy --features ssr --all-targets -- -D warnings
 sqlx migrate add <name>          # neue Migration
+docker compose up --build        # App + PostgreSQL + Icecast im Container (ANF-010), POSTGRES_* in .env
 ```
 
 ## Struktur
@@ -39,8 +40,12 @@ src/
   state.rs         AppState (LeptosOptions + PgPool), nur ssr
   db.rs            connect(), migrate(), pool() für Server-Funktionen, nur ssr
   articles/        Fachbereich Artikel: model.rs (Server+Browser), api.rs (#[server]), repo.rs (SQL, ssr)
-  products/        Fachbereich Shop-Produkte (ANF-005), gleicher Aufbau wie articles/
-  components/      Wiederverwendbare UI-Komponenten (article.rs: Felder, Badge, Lösch-Dialog, Flash; product.rs: dasselbe für Produkte)
+  products/        Fachbereich Shop-Produkte (ANF-005, ANF-009), gleicher Aufbau wie articles/
+  events/          Fachbereich Events (ANF-006), gleicher Aufbau
+  radio/           Radio: Sendeplan + Archiv (ANF-007), gleicher Aufbau
+  datetime.rs      Datum/Uhrzeit auf Deutsch, Wochen-Hilfen (Server+Browser)
+  components/      Wiederverwendbare UI-Komponenten (article.rs/product.rs/event.rs: Felder, Badge, Lösch-Dialog, Flash;
+                   navbar.rs: Kopfzeile + Leiste unten; player.rs: Radio-Player; cart.rs: Warenkorb; ui.rs: Chip, Seitenkopf)
   pages/           Eine Datei pro Seite/Route
 style/tailwind.css Tailwind-Einstieg mit @plugin "daisyui"
 migrations/        sqlx-Migrationen (laufen beim Serverstart)
@@ -56,6 +61,7 @@ docs/              Projekt-Dokumentation
 - **Datenzugriff** nur über `#[server]`-Funktionen; Pool mit `crate::db::pool()?` holen.
 - **SQL:** `sqlx::query_as` mit Bind-Parametern (`$1`), nie String-Formatierung. Die `query!`-Makros brauchen beim Kompilieren eine DB – nur nutzen, wenn `DATABASE_URL` gesetzt ist oder `cargo sqlx prepare` gelaufen ist.
 - **Schemaänderungen** immer als neue Migration, bestehende Migrationen nie ändern.
+- **Design:** Designvorschlag „Techno App“ (ANF-009): dunkles Theme `saintwhoo`, Akzent `primary` (Acid-Gelb), Titel `font-display`, gedämpfter Text `text-muted`, Flächen `bg-base-200 border border-base-300`. Touch-Ziele min. 44 px (`min-h-11`).
 - **Styling:** DaisyUI-Komponenten (`btn`, `card`, `alert`, …) zuerst, Tailwind-Utilities für Layout. Keine eigenen CSS-Dateien ohne Grund. Klassen als ganze Strings schreiben (kein `format!("btn-{x}")`), sonst findet Tailwind sie nicht.
 - **Neue Seite:** Datei in `src/pages/`, in `pages/mod.rs` eintragen, `<Route>` in `app.rs` ergänzen.
 - **Neuer Datensatz-Typ:** dem CRUD-Muster in `docs/system-design.md` folgen (Vorlage: `src/articles/`, `src/pages/article_*.rs`).
@@ -64,6 +70,7 @@ docs/              Projekt-Dokumentation
 - **Bilder** nur mit Bildnachweis und nur aus freien Quellen (z. B. Wikimedia Commons). Lizenz in `public/images/artikel/CREDITS.json` eintragen.
 - **`public/`:** `cargo leptos watch` übernimmt neue Dateien nicht immer zuverlässig. Im Zweifel den Watcher neu starten.
 - `wasm-bindgen` ist exakt gepinnt – Version nur zusammen mit der wasm-bindgen-CLI ändern.
+- **Docker (ANF-010):** Neue Umgebungsvariablen auch in `.env.example` und beim Dienst `app` in `docker-compose.yml` eintragen. Neue Ordner, die der Build braucht, nicht in `.dockerignore` ausschließen.
 - Sprache in UI und Doku: Deutsch.
 - Vor der Umsetzung eines Features die passende Datei in `docs/features/` lesen; die Abnahmekriterien (AK-x) sind die Testfälle.
 - Nach erledigten Aufgaben `docs/task.md` aktualisieren.

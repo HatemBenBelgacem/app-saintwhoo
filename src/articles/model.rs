@@ -24,6 +24,10 @@ pub mod msg {
     pub const DATE_MISSING: &str = "Bitte ein Veröffentlichungsdatum angeben.";
     pub const DATE_INVALID: &str = "Bitte ein gültiges Datum angeben.";
     pub const STATUS_INVALID: &str = "Bitte einen gültigen Status wählen.";
+    // ANF-008
+    pub const CATEGORY_INVALID: &str = "Bitte eine gültige Rubrik wählen.";
+    pub const NEWS_EMPTY: &str = "Noch keine News veröffentlicht.";
+    pub const NEWS_NO_MATCH: &str = "Keine News gefunden. Versuch es mit einem anderen Suchbegriff oder einer anderen Rubrik.";
     // ANF-002
     pub const NOT_FOUND: &str = "Dieser Artikel existiert nicht mehr.";
     pub const SAVED: &str = "Änderungen gespeichert.";
@@ -70,6 +74,64 @@ impl ArticleStatus {
     }
 }
 
+/// ANF-008: Rubrik eines Artikels (Filter auf der News-Seite).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ArticleCategory {
+    #[default]
+    News,
+    Interview,
+    Release,
+    Event,
+    Mix,
+}
+
+impl ArticleCategory {
+    pub const ALL: [ArticleCategory; 5] = [
+        ArticleCategory::News,
+        ArticleCategory::Interview,
+        ArticleCategory::Release,
+        ArticleCategory::Event,
+        ArticleCategory::Mix,
+    ];
+
+    /// Wert in Formular, Adresse und Datenbank.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            ArticleCategory::News => "news",
+            ArticleCategory::Interview => "interview",
+            ArticleCategory::Release => "release",
+            ArticleCategory::Event => "event",
+            ArticleCategory::Mix => "mix",
+        }
+    }
+
+    /// Einzahl, z. B. über dem Titel einer Meldung.
+    pub fn label(self) -> &'static str {
+        match self {
+            ArticleCategory::News => "Meldung",
+            ArticleCategory::Interview => "Interview",
+            ArticleCategory::Release => "Release",
+            ArticleCategory::Event => "Event",
+            ArticleCategory::Mix => "Mix",
+        }
+    }
+
+    /// Mehrzahl für die Filter-Chips.
+    pub fn plural(self) -> &'static str {
+        match self {
+            ArticleCategory::News => "Meldungen",
+            ArticleCategory::Interview => "Interviews",
+            ArticleCategory::Release => "Releases",
+            ArticleCategory::Event => "Events",
+            ArticleCategory::Mix => "Mixe",
+        }
+    }
+
+    pub fn parse(value: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|c| c.as_str() == value)
+    }
+}
+
 /// Rohe Eingaben aus dem Formular (alles Strings, wie vom Browser geschickt).
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct ArticleInput {
@@ -84,6 +146,9 @@ pub struct ArticleInput {
     pub image_url: String,
     #[serde(default)]
     pub image_credit: String,
+    /// ANF-008: leer = „Meldung“
+    #[serde(default)]
+    pub category: String,
 }
 
 /// Geprüfter Artikel, bereit zum Speichern.
@@ -94,6 +159,7 @@ pub struct ValidArticle {
     pub published_on: Option<NaiveDate>,
     pub status: ArticleStatus,
     pub image: Option<ArticleImage>,
+    pub category: ArticleCategory,
 }
 
 /// Bild eines Artikels mit Bildnachweis (ANF-004).
@@ -119,11 +185,13 @@ pub struct FieldErrors {
     pub status: Option<String>,
     pub image_url: Option<String>,
     pub image_credit: Option<String>,
+    pub category: Option<String>,
 }
 
 impl FieldErrors {
     pub fn is_empty(&self) -> bool {
-        self.title.is_none()
+        self.category.is_none()
+            && self.title.is_none()
             && self.body.is_none()
             && self.published_on.is_none()
             && self.status.is_none()
@@ -148,6 +216,7 @@ pub struct Article {
     pub published_on: Option<NaiveDate>,
     pub status: ArticleStatus,
     pub image: Option<ArticleImage>,
+    pub category: ArticleCategory,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -197,6 +266,16 @@ pub struct ArticleTeaser {
     pub published_on: NaiveDate,
     pub reading_minutes: u32,
     pub image: Option<ArticleImage>,
+    pub category: ArticleCategory,
+}
+
+/// ANF-008: Eine Seite der News-Liste.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct NewsPage {
+    pub items: Vec<ArticleTeaser>,
+    pub page: u32,
+    pub total_pages: u32,
+    pub total: i64,
 }
 
 /// Anriss: Text ohne Zeilenumbrüche, höchstens `max` Zeichen, an einer
@@ -331,6 +410,15 @@ pub fn validate(input: &ArticleInput) -> Result<ValidArticle, FieldErrors> {
         Some(ArticleImage { url: image_url.into(), credit: image_credit.into() })
     };
 
+    // Rubrik (ANF-008): leer = Standard
+    let category = match input.category.trim() {
+        "" => Some(ArticleCategory::default()),
+        c => ArticleCategory::parse(c),
+    };
+    if category.is_none() {
+        errors.category = Some(msg::CATEGORY_INVALID.into());
+    }
+
     if !errors.is_empty() {
         return Err(errors);
     }
@@ -340,6 +428,7 @@ pub fn validate(input: &ArticleInput) -> Result<ValidArticle, FieldErrors> {
         published_on,
         status: status.expect("geprüft"),
         image,
+        category: category.expect("geprüft"),
     })
 }
 
@@ -537,5 +626,21 @@ mod tests {
     #[test]
     fn zukunftsdatum_erlaubt() {
         assert!(validate(&input("T", "B", "2099-01-01", "published")).is_ok());
+    }
+
+    #[test]
+    fn anf008_rubrik() {
+        let base = ArticleInput {
+            title: "T".into(),
+            body: "Text".into(),
+            published_on: "2026-11-14".into(),
+            status: "published".into(),
+            ..Default::default()
+        };
+        assert_eq!(validate(&base).unwrap().category, ArticleCategory::News);
+        let a = validate(&ArticleInput { category: "interview".into(), ..base.clone() }).unwrap();
+        assert_eq!(a.category, ArticleCategory::Interview);
+        let e = validate(&ArticleInput { category: "klatsch".into(), ..base }).unwrap_err();
+        assert_eq!(e.category.as_deref(), Some(msg::CATEGORY_INVALID));
     }
 }

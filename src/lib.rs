@@ -1,8 +1,11 @@
 pub mod app;
 pub mod articles;
 pub mod components;
+pub mod datetime;
+pub mod events;
 pub mod pages;
 pub mod products;
+pub mod radio;
 
 #[cfg(feature = "ssr")]
 pub mod db;

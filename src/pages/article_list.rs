@@ -79,7 +79,7 @@ fn ArticleList(data: ArticlePage, filter: Option<ArticleStatus>) -> impl IntoVie
     if data.items.is_empty() {
         return if filter.is_none() {
             view! {
-                <div class="card bg-base-100 shadow">
+                <div class="card border border-base-300 bg-base-200">
                     <div class="card-body items-center text-center">
                         <p>{msg::LIST_EMPTY}</p>
                         <a href="/artikel/neu" class="btn btn-primary">"Neuer Artikel"</a>
@@ -89,7 +89,7 @@ fn ArticleList(data: ArticlePage, filter: Option<ArticleStatus>) -> impl IntoVie
             .into_any()
         } else {
             view! {
-                <div class="card bg-base-100 shadow">
+                <div class="card border border-base-300 bg-base-200">
                     <div class="card-body items-center text-center">
                         <p>{msg::LIST_EMPTY_FILTER}</p>
                     </div>
@@ -102,7 +102,7 @@ fn ArticleList(data: ArticlePage, filter: Option<ArticleStatus>) -> impl IntoVie
     let items = data.items.clone();
     view! {
         // Desktop: Tabelle
-        <div class="hidden md:block overflow-x-auto bg-base-100 rounded-box shadow">
+        <div class="hidden md:block overflow-x-auto rounded-box border border-base-300 bg-base-200">
             <table class="table">
                 <thead>
                     <tr>
@@ -137,7 +137,7 @@ fn date_text(a: &ArticleSummary) -> String {
 fn ArticleRow(article: ArticleSummary) -> impl IntoView {
     let id = article.id;
     view! {
-        <tr class="hover:bg-base-200">
+        <tr class="hover:bg-base-300/40">
             <td>
                 <a href=format!("/artikel/{id}") class="link link-hover font-medium">{article.title.clone()}</a>
             </td>
@@ -159,7 +159,7 @@ fn ArticleRow(article: ArticleSummary) -> impl IntoView {
 fn ArticleCard(article: ArticleSummary) -> impl IntoView {
     let id = article.id;
     view! {
-        <div class="card bg-base-100 shadow">
+        <div class="card border border-base-300 bg-base-200">
             <div class="card-body p-4 gap-2">
                 <a href=format!("/artikel/{id}") class="card-title link link-hover">{article.title.clone()}</a>
                 <div class="flex flex-wrap items-center gap-2 text-sm">

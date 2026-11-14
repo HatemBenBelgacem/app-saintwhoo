@@ -68,7 +68,7 @@ fn ProductDetail(product: Product) -> impl IntoView {
 
             <ProductFlash />
 
-            <article class="card bg-base-100 shadow overflow-hidden">
+            <article class="card overflow-hidden border border-base-300 bg-base-200">
                 {product.image.clone().map(|img| {
                     let credit = img.credit.clone();
                     view! {

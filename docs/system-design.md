@@ -91,7 +91,30 @@ products (
 )
 ```
 
+```sql
+-- Ergänzungen 14.11.2026
+articles.category  TEXT NOT NULL DEFAULT 'news'   -- ANF-008: news | interview | release | event | mix
+products.category  TEXT NOT NULL DEFAULT 'other'  -- ANF-009: hoodie | shirt | vinyl | accessory | other
+products.brand     TEXT NOT NULL DEFAULT ''       -- ANF-009: max. 80 Zeichen
+
+-- ANF-006
+events (
+  id, title, description,
+  starts_at     TIMESTAMP NOT NULL,   -- Ortszeit Zürich, ohne Zeitzone
+  venue, city, lineup,
+  ticket_url    TEXT,                 -- https://…
+  ticket_status TEXT NOT NULL DEFAULT 'available', -- available | few | sold_out
+  image_url, image_credit, created_at, updated_at
+)
+
+-- ANF-007
+radio_shows (id, title, host, starts_at TIMESTAMP, ends_at TIMESTAMP, created_at)  -- max. 12 Std.
+radio_mixes (id, title, host, duration_minutes INTEGER, audio_url TEXT, created_at)
+```
+
 Die Geschäftsregeln stehen zusätzlich als `CHECK`-Constraints in der DB.
+
+**Zeitzone:** Event- und Sendezeiten sind Ortszeit (Europe/Zurich) und werden als `TIMESTAMP` ohne Zeitzone gespeichert. „Heute“ und „jetzt“ ermittelt die Datenbank mit `now() AT TIME ZONE 'Europe/Zurich'`. So braucht das WASM-Bundle kein `chrono-tz`.
 
 ### Modul-Aufbau pro Fachbereich (Beispiel `src/articles/`)
 
@@ -105,14 +128,22 @@ Die Geschäftsregeln stehen zusätzlich als `CHECK`-Constraints in der DB.
 
 | Adresse | Seite | SSR-Modus |
 |---|---|---|
-| `/` | Magazin-Startseite (öffentlich) | Standard |
+| `/` | Startseite: Live, News, Events, Merch (ANF-009) | Standard |
+| `/news` | News mit Suche und Rubrik (`?q=`, `?rubrik=`, `?seite=`) – ANF-008 | Standard |
+| `/eventliste` | Eventliste (`?zeitraum=`) – ANF-006 | Standard |
+| `/eventliste/:id` | Eventseite | Async (für 404) |
+| `/events`, `/events/neu`, `/events/:id`, `/events/:id/bearbeiten` | Eventverwaltung (CRUD) | Async bei `:id` |
+| `/radio` | Radio Live + Sendeplan, `?ansicht=archiv` – ANF-007 | Standard |
+| `/radio/verwaltung` | Sendungen und Mixe anlegen/löschen | Standard |
+| `/warenkorb` | Warenkorb (nur im Browser) – ANF-009 | Standard |
 | `/beitrag/:id` | Leseansicht (nur öffentliche Artikel) | Async (für 404) |
 | `/status` | Systemstatus (DB-Verbindung) | Standard |
+| `/health` | Healthcheck für Docker: `200 ok` oder `503` (Axum-Route, kein Leptos) – ANF-010 | – |
 | `/artikel` | Liste (`?status=`, `?seite=`, `?meldung=`) | Standard |
 | `/artikel/neu` | Erstellen | Standard |
 | `/artikel/:id` | Detail | Async (für 404) |
 | `/artikel/:id/bearbeiten` | Bearbeiten | Async (für 404) |
-| `/shop` | Shop-Übersicht (`?sortierung=`, `?seite=`) – ANF-005 | Standard |
+| `/shop` | Shop-Übersicht (`?kategorie=`, `?sortierung=`, `?seite=`) – ANF-005/009 | Standard |
 | `/shop/:id` | Produktseite (nur aktive Produkte) | Async (für 404) |
 | `/produkte` | Produktliste (`?status=`, `?seite=`, `?meldung=`) | Standard |
 | `/produkte/neu` | Produkt erstellen | Standard |
@@ -140,7 +171,10 @@ Jeder neue Datensatz-Typ folgt dem Artikel-Muster:
 ## 5. Styling
 
 - Tailwind CSS 4 wird von `cargo-leptos` gebaut (`tailwind-input-file`), DaisyUI wird als Plugin aus `node_modules` geladen.
-- Theme: immer `light` (13.11.2026 festgelegt), unabhängig von der Systemeinstellung. Dazu `data-theme="light"` und `color-scheme: light` am `<html>`.
+- Theme: eigenes dunkles DaisyUI-Theme `saintwhoo` (14.11.2026, Designvorschlag „Techno App“, ANF-009). `data-theme="saintwhoo"` und `color-scheme: dark` am `<html>`. Farben stehen als Tokens in `style/tailwind.css`.
+- Schriften: Inter (`font-sans`) und Space Grotesk (`font-display`) über Google Fonts im `shell()`.
+- Seitenrahmen in `App`: Kopfzeile (`Navbar`), Leiste unten auf dem Handy (`BottomNav`), Player-Leiste (`PlayerBar`). Player und Warenkorb liegen als Kontext in `App`, damit sie beim Navigieren erhalten bleiben.
+- Große Komponenten enden mit `.into_any()`. Sonst werden die Typnamen so lang, dass der macOS-Linker abbricht (`ld: Assertion failed … makeSymbolStringInPlace`).
 - Ergebnis: `/pkg/app-saintwhoo.css`, eingebunden in `App` über `<Stylesheet>`.
 
 ## 6. Konfiguration
@@ -149,16 +183,31 @@ Jeder neue Datensatz-Typ folgt dem Artikel-Muster:
 |---|---|---|
 | `DATABASE_URL` | `.env` | PostgreSQL-Verbindung |
 | `RUST_LOG` | `.env` | Log-Level (tracing) |
-| `LEPTOS_SITE_ADDR` | Umgebung | Überschreibt `site-addr` (Standard `127.0.0.1:3000`) |
+| `RADIO_STREAM_URL` | `.env` | Adresse des Radio-Livestreams (ANF-007). Leer = „Livestream nicht verfügbar“ |
+| `LEPTOS_SITE_ADDR` | Umgebung | Überschreibt `site-addr` (Standard `127.0.0.1:3010`, im Container `0.0.0.0:3000`) |
+| `PORT` | Umgebung | Setzen Plattformen wie Railway. Ist sie gesetzt, hört die App auf `0.0.0.0:$PORT` (hat Vorrang vor `LEPTOS_SITE_ADDR`) |
+| `LEPTOS_SITE_ROOT`, `LEPTOS_OUTPUT_NAME`, `LEPTOS_ENV` | Umgebung | Im Docker-Image fest gesetzt (`Dockerfile`), weil `Cargo.toml` dort fehlt |
+| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `APP_PORT` | `.env` | Nur für `docker compose` (ANF-010); die App im Container baut daraus ihre `DATABASE_URL` |
 | `[package.metadata.leptos]` | `Cargo.toml` | Build-Einstellungen von cargo-leptos |
 
-## 7. Deployment (Vorschlag)
+## 7. Deployment mit Docker (ANF-010)
 
 `cargo leptos build --release` erzeugt:
 - `target/release/app-saintwhoo` (Server)
 - `target/site/` (CSS, JS, WASM, statische Dateien)
 
-Beides zusammen ausliefern, dazu `LEPTOS_SITE_ROOT=site`, `LEPTOS_SITE_ADDR=0.0.0.0:3000` und `DATABASE_URL` setzen. Ein Dockerfile ist noch offen (siehe [task.md](task.md)).
+Das [`Dockerfile`](../Dockerfile) macht genau das in zwei Stufen:
+
+| Stufe | Basis | Inhalt |
+|---|---|---|
+| `builder` | `rust:1.96-trixie` + Node 24 | `npm ci`, `cargo-leptos` 0.3.10, `cargo leptos build --release`. cargo-leptos lädt wasm-bindgen (passend zu `Cargo.lock`), wasm-opt und Tailwind selbst. Keine Cache-Mounts (Railway lehnt sie ohne Dienst-ID ab); `npm ci` liegt in einer eigenen Schicht. |
+| `runtime` | `debian:trixie-slim` | nur Binary + `site/`, Benutzer `saintwhoo` (ohne Root), Healthcheck über `app-saintwhoo healthcheck` (fragt `/health` ab, kein curl im Image) |
+
+Die Migrationen stecken über `sqlx::migrate!` im Binary und laufen beim Start. Bei SIGTERM (`docker stop`) beendet der Server laufende Anfragen und fährt dann herunter (`with_graceful_shutdown`).
+
+[`docker-compose.yml`](../docker-compose.yml): `db` (PostgreSQL 17, Volume `pgdata`, Healthcheck `pg_isready`, Port nicht nach außen), `app` (startet erst, wenn `db` gesund ist) und `icecast` (ANF-007). HTTPS übernimmt später ein Reverse-Proxy davor.
+
+**Railway:** [`railway.toml`](../railway.toml) erzwingt den Build mit dem `Dockerfile` (statt Railpack, das nur `cargo build` ohne WASM/CSS ausführt) und nutzt `/health` als Healthcheck. Im Railway-Projekt einen PostgreSQL-Dienst anlegen und beim App-Dienst `DATABASE_URL=${{Postgres.DATABASE_URL}}` setzen; `PORT` setzt Railway selbst. Der Dienst muss den Branch mit `Dockerfile` und `railway.toml` bauen.
 
 ## 8. Offene Entscheidungen
 

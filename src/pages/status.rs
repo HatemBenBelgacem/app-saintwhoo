@@ -20,7 +20,7 @@ pub fn StatusPage() -> impl IntoView {
     view! {
         <div class="max-w-2xl mx-auto">
             <h1 class="text-3xl font-bold mb-6">"Systemstatus"</h1>
-            <div class="card bg-base-100 shadow">
+            <div class="card border border-base-300 bg-base-200">
                 <div class="card-body">
                     <h2 class="card-title">"Datenbank"</h2>
                     <Suspense fallback=|| view! { <span class="loading loading-dots"></span> }>

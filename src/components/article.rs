@@ -4,7 +4,7 @@ use leptos::prelude::*;
 use leptos_router::hooks::use_query_map;
 
 use crate::articles::api::DeleteArticle;
-use crate::articles::model::{Article, ArticleStatus, DeleteOutcome, FieldErrors, msg};
+use crate::articles::model::{Article, ArticleCategory, ArticleStatus, DeleteOutcome, FieldErrors, msg};
 
 /// Zähler, der nach Änderungen hochgezählt wird, damit Listen neu laden.
 #[derive(Clone, Copy)]
@@ -22,6 +22,7 @@ pub fn server_error_text(e: &ServerFnError) -> String {
 /// mit `initial` vorausgefüllt (Bearbeiten).
 #[component]
 pub fn ArticleFields(#[prop(optional)] initial: Option<Article>, errors: Memo<FieldErrors>) -> impl IntoView {
+    let category = initial.as_ref().map(|a| a.category).unwrap_or_default();
     let (title, body, date, status, image_url, image_credit) = match initial {
         Some(a) => (
             a.title,
@@ -46,6 +47,20 @@ pub fn ArticleFields(#[prop(optional)] initial: Option<Article>, errors: Memo<Fi
                 placeholder="Titel des Artikels"
                 aria-required="true"
             />
+        </Field>
+
+        // ANF-008: Rubrik für den News-Filter
+        <Field label="Rubrik" error=err(|e| e.category.clone())>
+            <select
+                name="category"
+                class="select w-full"
+                class:select-error=move || errors.get().category.is_some()
+            >
+                {ArticleCategory::ALL
+                    .into_iter()
+                    .map(|c| view! { <option value=c.as_str() selected=c == category>{c.label()}</option> })
+                    .collect_view()}
+            </select>
         </Field>
 
         <Field label="Text" error=err(|e| e.body.clone())>

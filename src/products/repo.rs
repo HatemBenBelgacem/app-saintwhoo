@@ -4,8 +4,8 @@ use chrono::{DateTime, Utc};
 use sqlx::PgPool;
 
 use super::model::{
-    CreateOutcome, DeleteOutcome, FieldErrors, PAGE_SIZE, Product, ProductInput, ProductPage,
-    ProductStatus, ProductSummary, SHOP_PAGE_SIZE, ShopItem, ShopPage, ShopSort, UpdateOutcome,
+    CreateOutcome, DeleteOutcome, FieldErrors, PAGE_SIZE, Product, ProductCategory, ProductInput,
+    ProductPage, ProductStatus, ProductSummary, SHOP_PAGE_SIZE, ShopItem, ShopPage, ShopSort, UpdateOutcome,
     ProductImage, ValidProduct, msg, normalize_sku, total_pages, validate,
 };
 
@@ -21,6 +21,8 @@ struct ProductRow {
     status: String,
     image_url: Option<String>,
     image_credit: Option<String>,
+    category: String,
+    brand: String,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
 }
@@ -38,6 +40,8 @@ impl From<ProductRow> for Product {
             // Die DB erlaubt per CHECK nur gültige Werte
             status: ProductStatus::parse(&r.status).unwrap_or_default(),
             image: ProductImage::from_columns(r.image_url, r.image_credit),
+            category: ProductCategory::parse(&r.category).unwrap_or_default(),
+            brand: r.brand,
             created_at: r.created_at,
             updated_at: r.updated_at,
         }
@@ -121,8 +125,9 @@ pub async fn create(pool: &PgPool, input: &ProductInput) -> Result<CreateOutcome
     };
     let res: Result<i64, sqlx::Error> = sqlx::query_scalar(
         "INSERT INTO products
-             (name, sku, short_description, description, price_cents, stock, status, image_url, image_credit)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+             (name, sku, short_description, description, price_cents, stock, status, image_url, image_credit,
+              category, brand)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
          RETURNING id",
     )
     .bind(&p.name)
@@ -134,6 +139,8 @@ pub async fn create(pool: &PgPool, input: &ProductInput) -> Result<CreateOutcome
     .bind(p.status.as_str())
     .bind(p.image.as_ref().map(|i| &i.url))
     .bind(p.image.as_ref().map(|i| &i.credit))
+    .bind(p.category.as_str())
+    .bind(&p.brand)
     .fetch_one(pool)
     .await;
     match res {
@@ -148,7 +155,7 @@ pub async fn create(pool: &PgPool, input: &ProductInput) -> Result<CreateOutcome
 pub async fn find(pool: &PgPool, id: i64) -> Result<Option<Product>, sqlx::Error> {
     let row: Option<ProductRow> = sqlx::query_as(
         "SELECT id, name, sku, short_description, description, price_cents, stock, status,
-                image_url, image_credit, created_at, updated_at
+                image_url, image_credit, category, brand, created_at, updated_at
          FROM products WHERE id = $1",
     )
     .bind(id)
@@ -205,7 +212,7 @@ pub async fn update(pool: &PgPool, id: i64, input: &ProductInput) -> Result<Upda
         "UPDATE products
          SET name = $1, sku = $2, short_description = $3, description = $4,
              price_cents = $5, stock = $6, status = $7,
-             image_url = $8, image_credit = $9, updated_at = now()
+             image_url = $8, image_credit = $9, category = $11, brand = $12, updated_at = now()
          WHERE id = $10
          RETURNING id",
     )
@@ -219,6 +226,8 @@ pub async fn update(pool: &PgPool, id: i64, input: &ProductInput) -> Result<Upda
     .bind(p.image.as_ref().map(|i| &i.url))
     .bind(p.image.as_ref().map(|i| &i.credit))
     .bind(id)
+    .bind(p.category.as_str())
+    .bind(&p.brand)
     .fetch_optional(pool)
     .await;
     match res {
@@ -242,9 +251,23 @@ pub async fn delete(pool: &PgPool, id: i64) -> Result<DeleteOutcome, sqlx::Error
 /// Eine Seite des Shops – nur aktive Produkte. Die Sortierung wird als
 /// Parameter übergeben (sqlx erlaubt nur feste SQL-Strings).
 pub async fn shop(pool: &PgPool, page: u32, sort: ShopSort) -> Result<ShopPage, sqlx::Error> {
-    let total: i64 = sqlx::query_scalar("SELECT count(*) FROM products WHERE status = 'active'")
-        .fetch_one(pool)
-        .await?;
+    shop_filtered(pool, page, sort, None).await
+}
+
+/// Wie [`shop`], optional nur eine Kategorie.
+pub async fn shop_filtered(
+    pool: &PgPool,
+    page: u32,
+    sort: ShopSort,
+    category: Option<ProductCategory>,
+) -> Result<ShopPage, sqlx::Error> {
+    let category = category.map(ProductCategory::as_str);
+    let total: i64 = sqlx::query_scalar(
+        "SELECT count(*) FROM products WHERE status = 'active' AND ($1::text IS NULL OR category = $1)",
+    )
+    .bind(category)
+    .fetch_one(pool)
+    .await?;
 
     let total_pages = total_pages(total, SHOP_PAGE_SIZE);
     let page = page.clamp(1, total_pages);
@@ -259,11 +282,12 @@ pub async fn shop(pool: &PgPool, page: u32, sort: ShopSort) -> Result<ShopPage, 
         stock: i32,
         image_url: Option<String>,
         image_credit: Option<String>,
+        brand: String,
     }
     let rows: Vec<Row> = sqlx::query_as(
-        "SELECT id, name, short_description, price_cents, stock, image_url, image_credit
+        "SELECT id, name, short_description, price_cents, stock, image_url, image_credit, brand
          FROM products
-         WHERE status = 'active'
+         WHERE status = 'active' AND ($4::text IS NULL OR category = $4)
          ORDER BY
              CASE WHEN $1 = 'preis-auf' THEN price_cents END ASC,
              CASE WHEN $1 = 'preis-ab'  THEN price_cents END DESC,
@@ -274,6 +298,7 @@ pub async fn shop(pool: &PgPool, page: u32, sort: ShopSort) -> Result<ShopPage, 
     .bind(sort.as_str())
     .bind(SHOP_PAGE_SIZE)
     .bind(offset)
+    .bind(category)
     .fetch_all(pool)
     .await?;
 
@@ -287,6 +312,7 @@ pub async fn shop(pool: &PgPool, page: u32, sort: ShopSort) -> Result<ShopPage, 
                 price_cents: r.price_cents,
                 stock: r.stock,
                 image: ProductImage::from_columns(r.image_url, r.image_credit),
+                brand: r.brand,
             })
             .collect(),
         page,
@@ -300,7 +326,7 @@ pub async fn shop(pool: &PgPool, page: u32, sort: ShopSort) -> Result<ShopPage, 
 pub async fn find_active(pool: &PgPool, id: i64) -> Result<Option<Product>, sqlx::Error> {
     let row: Option<ProductRow> = sqlx::query_as(
         "SELECT id, name, sku, short_description, description, price_cents, stock, status,
-                image_url, image_credit, created_at, updated_at
+                image_url, image_credit, category, brand, created_at, updated_at
          FROM products WHERE id = $1 AND status = 'active'",
     )
     .bind(id)

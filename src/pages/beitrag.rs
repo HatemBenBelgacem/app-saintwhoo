@@ -37,7 +37,7 @@ fn Beitrag(article: Article) -> impl IntoView {
 
             <header class="mt-8 text-center">
                 <Kicker accent=true>{meta}</Kicker>
-                <h1 class="mt-4 font-serif text-4xl font-bold leading-[1.1] break-words hyphens-auto md:text-6xl">
+                <h1 class="mt-4 font-display text-4xl font-bold leading-[1.1] break-words hyphens-auto md:text-6xl">
                     {article.title.clone()}
                 </h1>
             </header>
@@ -57,7 +57,7 @@ fn Beitrag(article: Article) -> impl IntoView {
                 })}
             </figure>
 
-            <div class="mt-10 space-y-6 font-serif text-lg leading-relaxed md:text-xl md:leading-relaxed">
+            <div class="mt-10 space-y-6 font-display text-lg leading-relaxed md:text-xl md:leading-relaxed">
                 {paras
                     .into_iter()
                     .enumerate()

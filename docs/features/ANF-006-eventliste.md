@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Priorität** | Muss |
-| **Status** | offen |
+| **Status** | umgesetzt (14.11.2026), erweitert nach Designvorschlag „Techno App“ |
 | **Rolle** | Redakteur:in, Besucher:in |
 
 **Beschreibung**
@@ -33,6 +33,13 @@ Die Anforderung besteht aus zwei Teilen:
 | Beschreibung | Text, mehrzeilig | ja | 1–10 000 Zeichen. Zeilenumbrüche bleiben erhalten. Leerzeilen trennen Absätze. Klartext (kein HTML/Markdown). |
 | Bild-Adresse | Text, einzeilig | nein | Gleiche Regeln wie [ANF-004](ANF-004-artikelbild.md): leer = kein Bild, sonst beginnt sie mit `https://` oder `/`, keine Leerzeichen, höchstens 500 Zeichen. |
 | Bildnachweis | Text, einzeilig | nur wenn eine Bild-Adresse gesetzt ist | Höchstens 200 Zeichen. Beispiel: „Foto: Name / Wikimedia Commons (CC BY 2.0)“. Ohne Bild-Adresse wird kein Nachweis gespeichert. |
+| Datum | Datum | ja | Gültiges Datum (`YYYY-MM-DD`). *Erweiterung 14.11.2026* |
+| Beginn | Uhrzeit | ja | `HH:MM`, Ortszeit Zürich. Datum + Beginn werden ohne Zeitzone gespeichert. *Erweiterung* |
+| Ort | Text, einzeilig | ja | Club oder Location, 1–120 Zeichen. *Erweiterung* |
+| Stadt | Text, einzeilig | ja | 1–80 Zeichen. *Erweiterung* |
+| Lineup | Text, einzeilig | nein | Namen mit Komma getrennt, höchstens 300 Zeichen. *Erweiterung* |
+| Ticket-Adresse | Text, einzeilig | nein | Beginnt mit `https://`, keine Leerzeichen, höchstens 500 Zeichen. *Erweiterung* |
+| Tickets | Auswahl | ja | *Tickets verfügbar* (Standard), *Wenige Tickets*, *Ausverkauft*. *Erweiterung* |
 
 Zusätzlich setzt das System automatisch: ID, `created_at`, `updated_at` (siehe ANF-002, R-8).
 
@@ -54,7 +61,7 @@ Es gelten alle Regeln R-1 bis R-10 aus [ANF-002 Teil A](ANF-002-crud-datensaetze
 
 ### A1. Liste – `/events`
 
-- Spalten: **Bild** (kleines Vorschaubild oder Platzhalter), **Titel** (Link zur Detailseite), **Zuletzt geändert**.
+- Spalten: **Bild** (kleines Vorschaubild oder Platzhalter), **Titel** (Link zur Detailseite), **Beginn** (mit Stadt), **Zuletzt geändert**.
 - Pro Zeile: **Bearbeiten** und **Löschen**.
 - Oben: Knopf **„Neues Event“**.
 - Reihenfolge: zuletzt geändert zuerst.
@@ -80,6 +87,12 @@ Es gelten alle Regeln R-1 bis R-10 aus [ANF-002 Teil A](ANF-002-crud-datensaetze
 | Bild-Adresse ungültig | „Bitte eine gültige Bild-Adresse angeben (https://… oder /…).“ |
 | Bild-Adresse ohne Bildnachweis | „Bitte einen Bildnachweis angeben.“ |
 | Bildnachweis zu lang | „Der Bildnachweis darf höchstens 200 Zeichen lang sein.“ |
+| Datum fehlt / ungültig | „Bitte ein Datum angeben.“ / „Bitte ein gültiges Datum angeben.“ |
+| Beginn fehlt / ungültig | „Bitte eine Uhrzeit angeben.“ / „Bitte eine gültige Uhrzeit angeben (HH:MM).“ |
+| Ort leer / zu lang | „Bitte einen Ort angeben.“ / „Der Ort darf höchstens 120 Zeichen lang sein.“ |
+| Stadt leer / zu lang | „Bitte eine Stadt angeben.“ / „Die Stadt darf höchstens 80 Zeichen lang sein.“ |
+| Lineup zu lang | „Das Lineup darf höchstens 300 Zeichen lang sein.“ |
+| Ticket-Adresse ungültig | „Bitte eine gültige Ticket-Adresse angeben (https://…).“ |
 
 ### A3. Detail – `/events/<id>`
 
@@ -96,18 +109,23 @@ Es gelten alle Regeln R-1 bis R-10 aus [ANF-002 Teil A](ANF-002-crud-datensaetze
 
 ## Teil B – Eventliste (öffentlich)
 
-### B1. Übersicht – `/eventliste`
+### B1. Übersicht – `/eventliste?zeitraum=…`
 
-- Zeigt **alle Events** als **Karten**: Bild (oder Platzhalter) mit Bildnachweis klein unten rechts, Titel, Anfang der Beschreibung (höchstens 3 Zeilen, danach „…“).
-- Ein Klick auf Karte oder Titel öffnet die Eventseite.
-- **Reihenfolge:** neueste zuerst (`created_at` absteigend).
-- **Layout:** Handy 1 Spalte, Tablet 2 Spalten, Desktop 3 Spalten.
-- Leere Liste: „Zurzeit sind keine Events geplant.“
-- Die Eventliste ist in der Navigationsleiste verlinkt („Events“).
+Layout nach dem Designvorschlag „Techno App“ (geändert am 14.11.2026):
+
+- Zeigt nur **kommende Events**: Beginn heute (ab 00:00) oder später. Vergangene Events sind ausgeblendet.
+- **Reihenfolge:** nach Beginn, das nächste zuerst.
+- **Zeitraum-Filter** als Chips: *Alle*, *Heute*, *Diese Woche* (bis Sonntag), *Wochenende* (Freitag 00:00 bis Montag 00:00). Der Filter steht in der Adresse (`?zeitraum=heute|woche|wochenende`).
+- **Highlight:** Das nächste Event erscheint groß: Bild, Badge „HEUTE“ (wenn heute), „Wenige Tickets“, Datum und Uhrzeit, Titel, Ort · Stadt, Lineup, Anfang der Beschreibung, Knopf **„Tickets sichern“**.
+- **Demnächst:** Die weiteren Events als Zeilen mit Datumsblock (Wochentag, Tag, Monat), Titel, Ort · Stadt · Uhrzeit, Lineup und Knopf **„Tickets“**.
+- Ticket-Knopf: öffnet die Ticket-Adresse in einem neuen Fenster. Ist das Event ausverkauft, steht dort ein ausgegrauter Knopf „Ausverkauft“. Ohne Ticket-Adresse gibt es keinen Knopf.
+- **Layout:** Handy 1 Spalte; ab Tablet Highlight mit Bild links; „Demnächst“ in 2 bzw. 3 Spalten.
+- Leere Liste: „Zurzeit sind keine Events geplant.“; leerer Zeitraum: „In diesem Zeitraum sind keine Events geplant.“
+- Die Eventliste ist in der Navigation verlinkt („Events“).
 
 ### B2. Eventseite – `/eventliste/<id>`
 
-- Großes Bild mit Bildnachweis als Bildunterschrift, Titel, Beschreibung in Absätzen.
+- Großes Bild mit Bildnachweis als Bildunterschrift, Datum und Uhrzeit, Titel, Ort · Stadt, Lineup, Ticket-Knopf, Beschreibung in Absätzen.
 - Link **„Zurück zur Eventliste“**.
 - Unbekannte IDs → **404-Seite** (HTTP-Status 404).
 
@@ -128,16 +146,22 @@ Es gelten alle Regeln R-1 bis R-10 aus [ANF-002 Teil A](ANF-002-crud-datensaetze
 | AK-9 | ein Event wird bearbeitet | Titel geändert und gespeichert wird | ist der neue Titel gespeichert, `updated_at` ist neuer, `created_at` unverändert |
 | AK-10 | ein Event mit Bild | bearbeitet und die Bild-Adresse geleert wird | hat das Event danach kein Bild mehr (Platzhalter erscheint) |
 | AK-11 | der Löschdialog ist offen | „Löschen“ geklickt wird | ist das Event entfernt, die Liste zeigt „Event gelöscht.“ |
-| AK-12 | 3 Events, nacheinander erstellt | `/eventliste` geöffnet wird | sind alle 3 als Karten sichtbar, das neueste zuerst |
+| AK-12 | Events gestern, heute und später | `/eventliste` geöffnet wird | fehlt das Event von gestern; die anderen stehen nach Beginn sortiert, das nächste zuerst *(geändert 14.11.2026)* |
 | AK-13 | keine Events | `/eventliste` geöffnet wird | erscheint „Zurzeit sind keine Events geplant.“ |
 | AK-14 | eine Beschreibung mit zwei Absätzen | die Eventseite geöffnet wird | erscheinen zwei getrennte Absätze |
 | AK-15 | eine unbekannte ID | `/eventliste/<id>` aufgerufen wird | erscheint die 404-Seite (Status 404) |
 | AK-16 | die Eventliste | auf Handy, Tablet und Desktop angesehen | passt sich das Raster an (1 / 2 / 3 Spalten), nichts ragt seitlich heraus |
-| AK-17 | ungültige Werte | Erstellen oder Bearbeiten direkt an den Server bzw. die Datenbank geschickt wird | prüft der Server alle Regeln; die Datenbank lehnt leere Titel/Beschreibungen und ungültige Bilddaten zusätzlich ab (CHECK-Constraints) |
+| AK-17 | ungültige Werte | Erstellen oder Bearbeiten direkt an den Server bzw. die Datenbank geschickt wird | prüft der Server alle Regeln; die Datenbank lehnt leere Titel/Beschreibungen/Orte, ungültige Ticket- und Bilddaten zusätzlich ab (CHECK-Constraints) |
+| AK-18 | Datum, Beginn, Ort oder Stadt fehlen oder sind ungültig | gespeichert wird | erscheint beim jeweiligen Feld die Meldung, nichts wird gespeichert |
+| AK-19 | Ticket-Adresse `http://…` oder ohne `https://` | gespeichert wird | erscheint „Bitte eine gültige Ticket-Adresse angeben (https://…).“ |
+| AK-20 | Events am Mittwoch, Freitag, Sonntag und nächsten Montag; heute ist Mittwoch | Zeitraum *Heute* / *Diese Woche* / *Wochenende* gewählt wird | erscheint nur Mittwoch / Mittwoch bis Sonntag / Freitag und Sonntag |
+| AK-21 | ein Event mit Status *Ausverkauft* | die Eventliste geöffnet wird | zeigt es statt des Ticket-Links einen ausgegrauten Knopf „Ausverkauft“ |
 
 ## Annahmen (bitte bestätigen)
 
-- **Kein Datum, keine Uhrzeit, kein Ort.** Gefordert sind nur Titel, Beschreibung und Bild. Ohne Datum kann die Liste nicht nach Event-Termin sortiert und vergangene Events nicht ausgeblendet werden. → Sollen Datum/Uhrzeit und Ort ergänzt werden?
+- **Datum, Uhrzeit, Ort, Lineup und Tickets** wurden mit dem Designvorschlag „Techno App“ (14.11.2026) ergänzt. Zeiten gelten als Ortszeit Zürich.
+- **Keine Endzeit:** Ein Event verschwindet am Tag nach seinem Beginn aus der Liste (auch wenn es über Mitternacht läuft).
+- **Tickets** werden nicht selbst verkauft, nur verlinkt. Der Ticketstatus wird von Hand gepflegt.
 - **Kein Status Entwurf/Veröffentlicht:** Jedes gespeicherte Event ist sofort in der Eventliste sichtbar.
 - **Beschreibung ist Pflicht.**
 - **Bilder per Adresse** wie in ANF-004. Testbilder nur aus freien Quellen (z. B. Wikimedia Commons) unter `public/images/events/`, Lizenz in `public/images/events/CREDITS.json`.
@@ -147,8 +171,9 @@ Es gelten alle Regeln R-1 bis R-10 aus [ANF-002 Teil A](ANF-002-crud-datensaetze
 
 ## Nicht Teil von ANF-006
 
-- Datum, Uhrzeit, Ort, Preis, Ticketverkauf, Anmeldung
-- Kalenderansicht, Export (iCal), Filter oder Suche
+- Preis, eigener Ticketverkauf, Anmeldung
+- **„Merken“ und „Warteliste“** aus dem Designvorschlag – brauchen Benutzerkonten (siehe Anforderung.md, offene Fragen)
+- Kalenderansicht, Export (iCal), Suche
 - Bild-Upload, mehrere Bilder pro Event
 - Login, Berechtigungen
 
@@ -166,3 +191,4 @@ Nach dem CRUD-Muster in [system-design.md](../system-design.md), Vorlage `src/ar
 | Öffentliche Eventliste | `src/pages/eventliste.rs` (`/eventliste`), `src/pages/eventliste_event.rs` (`/eventliste/<id>`, `SsrMode::Async` für echtes 404) |
 | Komponenten (Felder, Eventkarte; Bild über `CoverImage`) | `src/components/event.rs` |
 | Tests | Unit-Tests in `model.rs`, DB-Tests in `tests/anf_006.rs` |
+| Datum/Uhrzeit auf Deutsch, Zeiträume | `src/datetime.rs` |

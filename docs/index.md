@@ -23,7 +23,37 @@ sqlx database create
 cargo leptos watch
 ```
 
-Danach läuft die App unter <http://127.0.0.1:3000>. Die Magazin-Startseite ist öffentlich, die Verwaltung liegt unter `/artikel`, und `/status` zeigt, ob die Datenbankverbindung klappt.
+Danach läuft die App unter <http://127.0.0.1:3010>. Die Magazin-Startseite ist öffentlich, die Verwaltung liegt unter `/artikel`, und `/status` zeigt, ob die Datenbankverbindung klappt.
+
+## Mit Docker starten (ANF-010)
+
+Nur Docker nötig – kein Rust, Node oder lokales PostgreSQL.
+
+```bash
+cp .env.example .env              # POSTGRES_PASSWORD und ICECAST_*-Passwörter setzen
+docker compose up --build         # App → http://localhost:3000 (APP_PORT), Icecast → :8000
+docker compose logs -f app
+docker compose down               # stoppen, Daten bleiben im Volume pgdata
+docker compose down -v            # stoppen und Daten löschen
+```
+
+Der Build dauert einige Minuten (Rust + WASM). Die Datenbank im Container ist von außen nicht erreichbar; für `psql` den auskommentierten `ports`-Eintrag beim Dienst `db` nutzen. `curl localhost:3000/health` zeigt, ob App und Datenbank laufen.
+
+## Livestream mit Icecast (Docker)
+
+Für den Radio-Livestream (ANF-007) gibt es einen Icecast-Container in [`docker/icecast/`](../docker/icecast/).
+
+```bash
+# in .env: ICECAST_SOURCE_PASSWORD und ICECAST_ADMIN_PASSWORD setzen,
+#          RADIO_STREAM_URL=http://localhost:8000/live
+docker compose up -d icecast      # Status-Seite → http://localhost:8000
+docker compose logs -f icecast
+docker compose down
+```
+
+Senden mit z. B. BUTT oder Mixxx: Server `localhost`, Port `8000`, Typ Icecast, Benutzer `source`, Passwort `ICECAST_SOURCE_PASSWORD`, Mountpoint `/live`, Format MP3 oder Ogg. Die Verwaltung liegt unter `http://localhost:8000/admin/` (Benutzer `admin`).
+
+Ohne gesetzte Passwörter (oder mit dem Platzhalter `bitte-aendern`) startet der Container nicht. Läuft die App später über HTTPS, muss auch der Stream über HTTPS ausgeliefert werden (Reverse-Proxy vor Icecast), sonst blockiert der Browser ihn.
 
 ## Tech-Stack
 

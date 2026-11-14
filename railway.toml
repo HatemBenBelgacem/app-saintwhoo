@@ -1,0 +1,12 @@
+# Railway-Deployment (ANF-010): mit dem Dockerfile bauen statt mit Railpack.
+# Railway setzt PORT; die App hört dann auf 0.0.0.0:$PORT.
+# Variablen im Railway-Dienst: DATABASE_URL (z. B. ${{Postgres.DATABASE_URL}}), optional RADIO_STREAM_URL.
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 120
+restartPolicyType = "ON_FAILURE"

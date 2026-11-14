@@ -4,9 +4,9 @@ use chrono::{DateTime, NaiveDate, Utc};
 use sqlx::PgPool;
 
 use super::model::{
-    Article, ArticleImage, ArticleInput, ArticlePage, ArticleStatus, ArticleSummary, ArticleTeaser,
-    CreateOutcome, DeleteOutcome, PAGE_SIZE, TEASER_MAX_CHARS, UpdateOutcome, ValidArticle,
-    reading_minutes, teaser, total_pages, validate,
+    Article, ArticleCategory, ArticleImage, ArticleInput, ArticlePage, ArticleStatus, ArticleSummary,
+    ArticleTeaser, CreateOutcome, DeleteOutcome, NewsPage, PAGE_SIZE, TEASER_MAX_CHARS, UpdateOutcome,
+    ValidArticle, reading_minutes, teaser, total_pages, validate,
 };
 
 #[derive(sqlx::FromRow)]
@@ -18,6 +18,7 @@ struct ArticleRow {
     status: String,
     image_url: Option<String>,
     image_credit: Option<String>,
+    category: String,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
 }
@@ -32,6 +33,7 @@ impl From<ArticleRow> for Article {
             // Die DB erlaubt per CHECK nur gültige Werte
             status: ArticleStatus::parse(&r.status).unwrap_or_default(),
             image: ArticleImage::from_columns(r.image_url, r.image_credit),
+            category: ArticleCategory::parse(&r.category).unwrap_or_default(),
             created_at: r.created_at,
             updated_at: r.updated_at,
         }
@@ -75,8 +77,8 @@ pub async fn create(pool: &PgPool, input: &ArticleInput) -> Result<CreateOutcome
 
 pub async fn insert(pool: &PgPool, a: &ValidArticle) -> Result<i64, sqlx::Error> {
     sqlx::query_scalar(
-        "INSERT INTO articles (title, body, published_on, status, image_url, image_credit)
-         VALUES ($1, $2, $3, $4, $5, $6)
+        "INSERT INTO articles (title, body, published_on, status, image_url, image_credit, category)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
          RETURNING id",
     )
     .bind(&a.title)
@@ -85,6 +87,7 @@ pub async fn insert(pool: &PgPool, a: &ValidArticle) -> Result<i64, sqlx::Error>
     .bind(a.status.as_str())
     .bind(a.image.as_ref().map(|i| &i.url))
     .bind(a.image.as_ref().map(|i| &i.credit))
+    .bind(a.category.as_str())
     .fetch_one(pool)
     .await
 }
@@ -93,7 +96,7 @@ pub async fn insert(pool: &PgPool, a: &ValidArticle) -> Result<i64, sqlx::Error>
 
 pub async fn find(pool: &PgPool, id: i64) -> Result<Option<Article>, sqlx::Error> {
     let row: Option<ArticleRow> = sqlx::query_as(
-        "SELECT id, title, body, published_on, status, image_url, image_credit, created_at, updated_at
+        "SELECT id, title, body, published_on, status, image_url, image_credit, category, created_at, updated_at
          FROM articles WHERE id = $1",
     )
         .bind(id)
@@ -158,7 +161,7 @@ pub async fn update(
     let updated: Option<i64> = sqlx::query_scalar(
         "UPDATE articles
          SET title = $1, body = $2, published_on = $3, status = $4,
-             image_url = $5, image_credit = $6, updated_at = now()
+             image_url = $5, image_credit = $6, category = $8, updated_at = now()
          WHERE id = $7
          RETURNING id",
     )
@@ -169,6 +172,7 @@ pub async fn update(
     .bind(a.image.as_ref().map(|i| &i.url))
     .bind(a.image.as_ref().map(|i| &i.credit))
     .bind(id)
+    .bind(a.category.as_str())
     .fetch_optional(pool)
     .await?;
 
@@ -208,9 +212,10 @@ pub async fn front_page(pool: &PgPool, limit: i64) -> Result<Vec<ArticleTeaser>,
         published_on: NaiveDate,
         image_url: Option<String>,
         image_credit: Option<String>,
+        category: String,
     }
     let rows: Vec<Row> = sqlx::query_as(
-        "SELECT id, title, body, published_on, image_url, image_credit
+        "SELECT id, title, body, published_on, image_url, image_credit, category
          FROM articles
          WHERE status = 'published' AND published_on <= CURRENT_DATE
          ORDER BY published_on DESC, created_at DESC, id DESC
@@ -229,6 +234,7 @@ pub async fn front_page(pool: &PgPool, limit: i64) -> Result<Vec<ArticleTeaser>,
             title: r.title,
             published_on: r.published_on,
             image: ArticleImage::from_columns(r.image_url, r.image_credit),
+            category: ArticleCategory::parse(&r.category).unwrap_or_default(),
         })
         .collect())
 }
@@ -236,7 +242,7 @@ pub async fn front_page(pool: &PgPool, limit: i64) -> Result<Vec<ArticleTeaser>,
 /// Ein öffentlicher Artikel – `None` für Entwürfe, geplante oder unbekannte.
 pub async fn find_published(pool: &PgPool, id: i64) -> Result<Option<Article>, sqlx::Error> {
     let row: Option<ArticleRow> = sqlx::query_as(
-        "SELECT id, title, body, published_on, status, image_url, image_credit, created_at, updated_at
+        "SELECT id, title, body, published_on, status, image_url, image_credit, category, created_at, updated_at
          FROM articles
          WHERE id = $1 AND status = 'published' AND published_on <= CURRENT_DATE",
     )
@@ -244,4 +250,78 @@ pub async fn find_published(pool: &PgPool, id: i64) -> Result<Option<Article>, s
     .fetch_optional(pool)
     .await?;
     Ok(row.map(Into::into))
+}
+
+// ---------- News (ANF-008) ----------
+
+/// Öffentliche News, neueste zuerst. `query` sucht in Titel und Text
+/// (Groß-/Kleinschreibung egal), `category` filtert nach Rubrik.
+pub async fn news(
+    pool: &PgPool,
+    query: &str,
+    category: Option<ArticleCategory>,
+    page: u32,
+) -> Result<NewsPage, sqlx::Error> {
+    let query = query.trim();
+    let category = category.map(ArticleCategory::as_str);
+
+    // strpos statt LIKE: Sonderzeichen wie % und _ müssen nicht maskiert werden
+    let total: i64 = sqlx::query_scalar(
+        "SELECT count(*) FROM articles
+         WHERE status = 'published' AND published_on <= CURRENT_DATE
+           AND ($1 = '' OR strpos(lower(title), lower($1)) > 0 OR strpos(lower(body), lower($1)) > 0)
+           AND ($2::text IS NULL OR category = $2)",
+    )
+    .bind(query)
+    .bind(category)
+    .fetch_one(pool)
+    .await?;
+
+    let total_pages = total_pages(total);
+    let page = page.clamp(1, total_pages);
+    let offset = i64::from(page - 1) * PAGE_SIZE;
+
+    #[derive(sqlx::FromRow)]
+    struct Row {
+        id: i64,
+        title: String,
+        body: String,
+        published_on: NaiveDate,
+        image_url: Option<String>,
+        image_credit: Option<String>,
+        category: String,
+    }
+    let rows: Vec<Row> = sqlx::query_as(
+        "SELECT id, title, body, published_on, image_url, image_credit, category
+         FROM articles
+         WHERE status = 'published' AND published_on <= CURRENT_DATE
+           AND ($1 = '' OR strpos(lower(title), lower($1)) > 0 OR strpos(lower(body), lower($1)) > 0)
+           AND ($2::text IS NULL OR category = $2)
+         ORDER BY published_on DESC, created_at DESC, id DESC
+         LIMIT $3 OFFSET $4",
+    )
+    .bind(query)
+    .bind(category)
+    .bind(PAGE_SIZE)
+    .bind(offset)
+    .fetch_all(pool)
+    .await?;
+
+    Ok(NewsPage {
+        items: rows
+            .into_iter()
+            .map(|r| ArticleTeaser {
+                id: r.id,
+                teaser: teaser(&r.body, TEASER_MAX_CHARS),
+                reading_minutes: reading_minutes(&r.body),
+                title: r.title,
+                published_on: r.published_on,
+                image: ArticleImage::from_columns(r.image_url, r.image_credit),
+                category: ArticleCategory::parse(&r.category).unwrap_or_default(),
+            })
+            .collect(),
+        page,
+        total_pages,
+        total,
+    })
 }
