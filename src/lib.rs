@@ -10,6 +10,8 @@ pub mod radio;
 #[cfg(feature = "ssr")]
 pub mod db;
 #[cfg(feature = "ssr")]
+pub mod server;
+#[cfg(feature = "ssr")]
 pub mod state;
 
 #[cfg(feature = "hydrate")]

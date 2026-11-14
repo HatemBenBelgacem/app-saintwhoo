@@ -1,11 +1,8 @@
 #[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() {
-    use app_saintwhoo::app::{App, shell};
     use app_saintwhoo::state::AppState;
-    use axum::Router;
     use leptos::prelude::*;
-    use leptos_axum::{LeptosRoutes, generate_route_list};
 
     // `app-saintwhoo healthcheck`: für den Docker-HEALTHCHECK (kein curl im Image)
     if std::env::args().nth(1).as_deref() == Some("healthcheck") {
@@ -30,30 +27,13 @@ async fn main() {
     let addr = env_port().map_or(leptos_options.site_addr, |port| {
         std::net::SocketAddr::from(([0, 0, 0, 0], port))
     });
-    let routes = generate_route_list(App);
 
     let state = AppState {
         leptos_options,
         pool,
     };
 
-    let app = Router::new()
-        // Healthcheck für Docker (ANF-010): nur `SELECT 1`, kein HTML
-        .route("/health", axum::routing::get(health))
-        .leptos_routes_with_context(
-            &state,
-            routes,
-            {
-                let state = state.clone();
-                move || provide_context(state.pool.clone())
-            },
-            {
-                let options = state.leptos_options.clone();
-                move || shell(options.clone())
-            },
-        )
-        .fallback(leptos_axum::file_and_error_handler::<AppState, _>(shell))
-        .with_state(state);
+    let app = app_saintwhoo::server::router(state);
 
     tracing::info!("Server läuft auf http://{addr}");
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
@@ -62,21 +42,6 @@ async fn main() {
         .await
         .unwrap();
     tracing::info!("Server beendet");
-}
-
-/// `GET /health`: 200 „ok“, wenn die Datenbank antwortet, sonst 503.
-#[cfg(feature = "ssr")]
-async fn health(
-    axum::extract::State(pool): axum::extract::State<sqlx::PgPool>,
-) -> (axum::http::StatusCode, &'static str) {
-    use axum::http::StatusCode;
-    match sqlx::query("SELECT 1").execute(&pool).await {
-        Ok(_) => (StatusCode::OK, "ok"),
-        Err(e) => {
-            tracing::warn!("Healthcheck: Datenbank nicht erreichbar: {e}");
-            (StatusCode::SERVICE_UNAVAILABLE, "Datenbank nicht erreichbar")
-        }
-    }
 }
 
 /// Fragt `GET /health` beim eigenen Server ab. Rückgabe 0 = gesund, 1 = nicht gesund.

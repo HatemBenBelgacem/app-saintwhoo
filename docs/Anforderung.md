@@ -32,6 +32,7 @@ Format: `ANF-<Nr>` (dreistellig) · Priorität **M**uss / **S**oll / **K**ann
 | [ANF-008](features/ANF-008-news-suche-rubrik.md) | News: Rubrik, Suche und Filter | M | umgesetzt |
 | [ANF-009](features/ANF-009-design-techno-app.md) | Design „Techno App“: Look, Navigation, Startseite, Shop-Filter, Warenkorb | M | umgesetzt |
 | [ANF-010](features/ANF-010-docker-container.md) | Docker-Container: App und PostgreSQL mit `docker compose` starten | S | umgesetzt |
+| [ANF-011](features/ANF-011-pwa.md) | PWA: App installieren, offline öffnen, Radio auf dem Sperrbildschirm | S | umgesetzt |
 
 Jede Anforderung hat eine eigene Datei in [features/](features/).
 

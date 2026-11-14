@@ -6,6 +6,8 @@ use leptos::html;
 use leptos::prelude::*;
 use leptos_router::hooks::use_location;
 
+use crate::components::pwa::{InstallButton, OfflineBadge, use_pwa};
+
 /// Ein Hauptbereich der App.
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Section {
@@ -100,18 +102,14 @@ fn SectionIcon(section: Section) -> impl IntoView {
 #[component]
 pub fn Navbar() -> impl IntoView {
     let location = use_location();
-    let menu = NodeRef::<html::Details>::new();
-    // Menü nach einem Klick schließen (bei Navigation ohne Seitenwechsel)
-    let close = move |_| {
-        if let Some(d) = menu.get() {
-            let _ = d.remove_attribute("open");
-        }
-    };
 
     view! {
-        <header class="sticky top-0 z-30 border-b border-base-300 bg-base-100/95 backdrop-blur">
+        <header class="sticky top-0 z-30 border-b border-base-300 bg-base-100/95 pt-[env(safe-area-inset-top)] backdrop-blur">
             <div class="container mx-auto flex h-16 items-center justify-between gap-4 px-4">
-                <a href="/" class="font-display text-2xl font-bold tracking-tight">"Saintwhoo"</a>
+                <div class="flex items-center gap-2">
+                    <a href="/" class="font-display text-2xl font-bold tracking-tight">"Saintwhoo"</a>
+                    <OfflineBadge />
+                </div>
 
                 <nav aria-label="Hauptmenü" class="hidden gap-1 md:flex">
                     {Section::ALL
@@ -134,23 +132,45 @@ pub fn Navbar() -> impl IntoView {
                         .collect_view()}
                 </nav>
 
-                // Verwaltung (funktioniert auch ohne JavaScript)
-                <details node_ref=menu class="dropdown dropdown-end">
-                    <summary class="btn btn-outline btn-sm min-h-11 border-base-300 px-4 font-medium">"Redaktion"</summary>
-                    <ul on:click=close class="menu dropdown-content z-40 mt-2 w-56 rounded-box border border-base-300 bg-base-200 p-2">
-                        <li class="menu-title">"Inhalte pflegen"</li>
-                        <li><a href="/artikel">"Artikel"</a></li>
-                        <li><a href="/events">"Events"</a></li>
-                        <li><a href="/radio/verwaltung">"Radio"</a></li>
-                        <li><a href="/produkte">"Produkte"</a></li>
-                        <li class="menu-title">"Neu"</li>
-                        <li><a href="/artikel/neu">"Neuer Artikel"</a></li>
-                        <li><a href="/events/neu">"Neues Event"</a></li>
-                        <li><a href="/produkte/neu">"Neues Produkt"</a></li>
-                    </ul>
-                </details>
+                <div class="flex items-center gap-2">
+                    <InstallButton />
+                    <EditorMenu />
+                </div>
             </div>
         </header>
+    }
+    .into_any()
+}
+
+/// Redaktions-Menü (funktioniert auch ohne JavaScript).
+#[component]
+fn EditorMenu() -> impl IntoView {
+    let pwa = use_pwa();
+    let menu = NodeRef::<html::Details>::new();
+    // Menü nach einem Klick schließen (bei Navigation ohne Seitenwechsel)
+    let close = move |_| {
+        if let Some(d) = menu.get() {
+            let _ = d.remove_attribute("open");
+        }
+    };
+    view! {
+        <details node_ref=menu class="dropdown dropdown-end">
+            <summary class="btn btn-outline btn-sm min-h-11 border-base-300 px-4 font-medium">"Redaktion"</summary>
+            <ul on:click=close class="menu dropdown-content z-40 mt-2 w-56 rounded-box border border-base-300 bg-base-200 p-2">
+                <Show when=move || !pwa.online.get()>
+                    <li class="px-3 py-2 text-sm text-warning">"Nur online möglich"</li>
+                </Show>
+                <li class="menu-title">"Inhalte pflegen"</li>
+                <li><a href="/artikel">"Artikel"</a></li>
+                <li><a href="/events">"Events"</a></li>
+                <li><a href="/radio/verwaltung">"Radio"</a></li>
+                <li><a href="/produkte">"Produkte"</a></li>
+                <li class="menu-title">"Neu"</li>
+                <li><a href="/artikel/neu">"Neuer Artikel"</a></li>
+                <li><a href="/events/neu">"Neues Event"</a></li>
+                <li><a href="/produkte/neu">"Neues Produkt"</a></li>
+            </ul>
+        </details>
     }
     .into_any()
 }

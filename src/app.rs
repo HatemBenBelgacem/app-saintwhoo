@@ -14,18 +14,23 @@ use crate::components::{
     navbar::{BottomNav, Navbar},
     player::{Player, PlayerBar},
     product::ProductsVersion,
+    pwa::{Pwa, UpdateToast},
 };
 use crate::pages::{
     article_detail::ArticleDetailPage, article_edit::ArticleEditPage,
     article_list::ArticleListPage, article_new::ArticleNewPage, beitrag::BeitragPage, cart::CartPage,
     event_detail::EventDetailPage, event_edit::EventEditPage, event_list::EventListPage,
     event_new::EventNewPage, eventliste::EventListePage, eventliste_event::EventListeEventPage,
-    home::HomePage, news::NewsListPage, not_found::NotFound, product_detail::ProductDetailPage,
+    home::HomePage, news::NewsListPage, not_found::NotFound, offline::OfflinePage, product_detail::ProductDetailPage,
     product_edit::ProductEditPage, product_list::ProductListPage, product_new::ProductNewPage,
     radio::RadioPage, radio_admin::RadioAdminPage, shop::ShopPage, shop_product::ShopProductPage, status::StatusPage,
 };
 
 /// HTML-Grundgerüst, das der Server ausliefert.
+///
+/// `shell` und `App` enden mit `.into_any()`: Sonst wird der Symbolname des
+/// Render-Streams im Router (`server.rs`) über 1 MB lang, und der macOS-Linker
+/// bricht beim Bauen der cdylib ab.
 pub fn shell(options: LeptosOptions) -> impl IntoView {
     view! {
         <!DOCTYPE html>
@@ -34,6 +39,16 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
                 <meta charset="utf-8" />
                 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
                 <meta name="theme-color" content="#0B0B0C" />
+                // ANF-011: PWA – Manifest, Icons, iOS-Vollbild
+                <link rel="manifest" href="/manifest.webmanifest" />
+                <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml" />
+                <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+                <meta name="apple-mobile-web-app-capable" content="yes" />
+                <meta name="mobile-web-app-capable" content="yes" />
+                <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+                <meta name="apple-mobile-web-app-title" content="Saintwhoo" />
+                // Service Worker registrieren, Installation/Offline (vor der Hydration laden)
+                <script src="/pwa.js"></script>
                 // Schriften laut Designvorschlag: Inter (Text) + Space Grotesk (Titel)
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
@@ -50,6 +65,7 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
             </body>
         </html>
     }
+    .into_any()
 }
 
 #[component]
@@ -60,6 +76,7 @@ pub fn App() -> impl IntoView {
     provide_context(EventsVersion(RwSignal::new(0)));
     provide_context(Player::new());
     provide_context(Cart::new());
+    Pwa::provide();
 
     view! {
         <Stylesheet id="leptos" href="/pkg/app-saintwhoo.css" />
@@ -71,6 +88,8 @@ pub fn App() -> impl IntoView {
                 <Routes fallback=NotFound>
                     <Route path=StaticSegment("") view=HomePage />
                     <Route path=path!("/status") view=StatusPage />
+                    // ANF-011: Offline-Seite (ohne Datenbank, vom Service Worker vorab gecacht)
+                    <Route path=path!("/offline") view=OfflinePage />
                     <Route path=path!("/beitrag/:id") view=BeitragPage ssr=SsrMode::Async />
                     <Route path=path!("/artikel") view=ArticleListPage />
                     <Route path=path!("/artikel/neu") view=ArticleNewPage />
@@ -105,6 +124,8 @@ pub fn App() -> impl IntoView {
             // Platz für die Navigationsleiste unten (Handy)
             <div class="h-24 md:hidden" aria-hidden="true"></div>
             <BottomNav />
+            <UpdateToast />
         </Router>
     }
+    .into_any()
 }
