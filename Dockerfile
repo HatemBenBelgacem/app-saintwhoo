@@ -20,8 +20,7 @@ RUN rustup target add wasm32-unknown-unknown
 
 # cargo-leptos lädt wasm-bindgen (passend zu Cargo.lock), wasm-opt und Tailwind selbst herunter
 ARG CARGO_LEPTOS_VERSION=0.3.10
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-    cargo install cargo-leptos --version ${CARGO_LEPTOS_VERSION} --locked
+RUN cargo install cargo-leptos --version ${CARGO_LEPTOS_VERSION} --locked
 
 WORKDIR /app
 
@@ -31,12 +30,8 @@ RUN npm ci --no-audit --no-fund
 
 COPY . .
 
-# Cache-Mounts für Registry und target/: ein geänderter Quelltext baut nicht alles neu.
-# Das Ergebnis wird aus dem Cache nach /out kopiert, weil Cache-Mounts nicht im Image landen.
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/app/target \
-    --mount=type=cache,target=/root/.cache/cargo-leptos \
-    cargo leptos build --release \
+# Keine Cache-Mounts: Railway akzeptiert sie nur mit eigener Dienst-ID (id=s/<service-id>-…).
+RUN cargo leptos build --release \
     && mkdir -p /out \
     && cp target/release/app-saintwhoo /out/app-saintwhoo \
     && strip /out/app-saintwhoo \
@@ -57,7 +52,8 @@ WORKDIR /app
 COPY --from=builder --chown=root:root /out/app-saintwhoo /app/app-saintwhoo
 COPY --from=builder --chown=root:root /out/site /app/site
 
-# Leptos-Konfiguration (Cargo.toml liegt nicht im Image)
+# Leptos-Konfiguration (Cargo.toml liegt nicht im Image).
+# Setzt die Plattform PORT (z. B. Railway), hört die App auf 0.0.0.0:$PORT.
 ENV LEPTOS_OUTPUT_NAME=app-saintwhoo \
     LEPTOS_SITE_ROOT=site \
     LEPTOS_SITE_PKG_DIR=pkg \

@@ -27,7 +27,9 @@ async fn main() {
 
     let conf = get_configuration(None).expect("Leptos-Konfiguration fehlt");
     let leptos_options = conf.leptos_options;
-    let addr = leptos_options.site_addr;
+    let addr = env_port().map_or(leptos_options.site_addr, |port| {
+        std::net::SocketAddr::from(([0, 0, 0, 0], port))
+    });
     let routes = generate_route_list(App);
 
     let state = AppState {
@@ -78,17 +80,19 @@ async fn health(
 }
 
 /// Fragt `GET /health` beim eigenen Server ab. Rückgabe 0 = gesund, 1 = nicht gesund.
-/// Port aus `LEPTOS_SITE_ADDR` (Standard 3000), immer über 127.0.0.1.
+/// Port aus `PORT`, sonst `LEPTOS_SITE_ADDR` (Standard 3000), immer über 127.0.0.1.
 #[cfg(feature = "ssr")]
 fn healthcheck() -> i32 {
     use std::io::{Read, Write};
     use std::net::{SocketAddr, TcpStream};
     use std::time::Duration;
 
-    let port = std::env::var("LEPTOS_SITE_ADDR")
-        .ok()
-        .and_then(|a| a.parse::<SocketAddr>().ok())
-        .map_or(3000, |a| a.port());
+    let port = env_port().unwrap_or_else(|| {
+        std::env::var("LEPTOS_SITE_ADDR")
+            .ok()
+            .and_then(|a| a.parse::<SocketAddr>().ok())
+            .map_or(3000, |a| a.port())
+    });
     let addr = SocketAddr::from(([127, 0, 0, 1], port));
     let check = || -> std::io::Result<bool> {
         let mut stream = TcpStream::connect_timeout(&addr, Duration::from_secs(3))?;
@@ -109,6 +113,13 @@ fn healthcheck() -> i32 {
             1
         }
     }
+}
+
+/// Port aus der Umgebungsvariable `PORT` (setzen Plattformen wie Railway).
+/// Ist sie gesetzt, hört der Server auf allen Schnittstellen (`0.0.0.0`).
+#[cfg(feature = "ssr")]
+fn env_port() -> Option<u16> {
+    std::env::var("PORT").ok()?.trim().parse().ok()
 }
 
 /// Wartet auf Ctrl+C oder SIGTERM (`docker stop`), damit laufende Anfragen

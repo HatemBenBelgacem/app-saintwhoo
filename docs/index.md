@@ -37,7 +37,7 @@ docker compose down               # stoppen, Daten bleiben im Volume pgdata
 docker compose down -v            # stoppen und Daten löschen
 ```
 
-Der erste Build dauert einige Minuten (Rust + WASM), danach hilft der Build-Cache. Die Datenbank im Container ist von außen nicht erreichbar; für `psql` den auskommentierten `ports`-Eintrag beim Dienst `db` nutzen. `curl localhost:3000/health` zeigt, ob App und Datenbank laufen.
+Der Build dauert einige Minuten (Rust + WASM). Die Datenbank im Container ist von außen nicht erreichbar; für `psql` den auskommentierten `ports`-Eintrag beim Dienst `db` nutzen. `curl localhost:3000/health` zeigt, ob App und Datenbank laufen.
 
 ## Livestream mit Icecast (Docker)
 

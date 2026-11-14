@@ -185,6 +185,7 @@ Jeder neue Datensatz-Typ folgt dem Artikel-Muster:
 | `RUST_LOG` | `.env` | Log-Level (tracing) |
 | `RADIO_STREAM_URL` | `.env` | Adresse des Radio-Livestreams (ANF-007). Leer = „Livestream nicht verfügbar“ |
 | `LEPTOS_SITE_ADDR` | Umgebung | Überschreibt `site-addr` (Standard `127.0.0.1:3010`, im Container `0.0.0.0:3000`) |
+| `PORT` | Umgebung | Setzen Plattformen wie Railway. Ist sie gesetzt, hört die App auf `0.0.0.0:$PORT` (hat Vorrang vor `LEPTOS_SITE_ADDR`) |
 | `LEPTOS_SITE_ROOT`, `LEPTOS_OUTPUT_NAME`, `LEPTOS_ENV` | Umgebung | Im Docker-Image fest gesetzt (`Dockerfile`), weil `Cargo.toml` dort fehlt |
 | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `APP_PORT` | `.env` | Nur für `docker compose` (ANF-010); die App im Container baut daraus ihre `DATABASE_URL` |
 | `[package.metadata.leptos]` | `Cargo.toml` | Build-Einstellungen von cargo-leptos |
@@ -199,12 +200,14 @@ Das [`Dockerfile`](../Dockerfile) macht genau das in zwei Stufen:
 
 | Stufe | Basis | Inhalt |
 |---|---|---|
-| `builder` | `rust:1.96-trixie` + Node 24 | `npm ci`, `cargo-leptos` 0.3.10, `cargo leptos build --release`. cargo-leptos lädt wasm-bindgen (passend zu `Cargo.lock`), wasm-opt und Tailwind selbst. Cache-Mounts für Registry und `target/`. |
+| `builder` | `rust:1.96-trixie` + Node 24 | `npm ci`, `cargo-leptos` 0.3.10, `cargo leptos build --release`. cargo-leptos lädt wasm-bindgen (passend zu `Cargo.lock`), wasm-opt und Tailwind selbst. Keine Cache-Mounts (Railway lehnt sie ohne Dienst-ID ab); `npm ci` liegt in einer eigenen Schicht. |
 | `runtime` | `debian:trixie-slim` | nur Binary + `site/`, Benutzer `saintwhoo` (ohne Root), Healthcheck über `app-saintwhoo healthcheck` (fragt `/health` ab, kein curl im Image) |
 
 Die Migrationen stecken über `sqlx::migrate!` im Binary und laufen beim Start. Bei SIGTERM (`docker stop`) beendet der Server laufende Anfragen und fährt dann herunter (`with_graceful_shutdown`).
 
 [`docker-compose.yml`](../docker-compose.yml): `db` (PostgreSQL 17, Volume `pgdata`, Healthcheck `pg_isready`, Port nicht nach außen), `app` (startet erst, wenn `db` gesund ist) und `icecast` (ANF-007). HTTPS übernimmt später ein Reverse-Proxy davor.
+
+**Railway:** [`railway.toml`](../railway.toml) erzwingt den Build mit dem `Dockerfile` (statt Railpack, das nur `cargo build` ohne WASM/CSS ausführt) und nutzt `/health` als Healthcheck. Im Railway-Projekt einen PostgreSQL-Dienst anlegen und beim App-Dienst `DATABASE_URL=${{Postgres.DATABASE_URL}}` setzen; `PORT` setzt Railway selbst. Der Dienst muss den Branch mit `Dockerfile` und `railway.toml` bauen.
 
 ## 8. Offene Entscheidungen
 

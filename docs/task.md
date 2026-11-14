@@ -76,4 +76,6 @@ Quelle: Claude-Design-Canvas „Techno App Designvorschlag“ (Version 1).
 - [x] ANF-010 umsetzen: `Dockerfile`, `.dockerignore`, `docker-compose.yml` (db + app + icecast), `.env.example`, `/health`, Graceful Shutdown – AK-1 bis AK-10 geprüft
 - [ ] ANF-010 AK-3 im Browser prüfen (Klick auf „+“ im Shop im Container)
 - [ ] Docker-Build in die CI aufnehmen (AK-6, AK-10)
+- [x] Railway-Deployment vorbereiten: `railway.toml` (Dockerfile-Build, Healthcheck `/health`), App liest `PORT`, Cache-Mounts aus dem `Dockerfile` entfernt
+- [ ] Railway: Dienst auf Branch mit `railway.toml` stellen, PostgreSQL anlegen, `DATABASE_URL` setzen, Deployment prüfen
 - [ ] Deployment
