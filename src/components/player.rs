@@ -108,6 +108,11 @@ pub fn PlayButton(
 #[component]
 pub fn PlayerBar() -> impl IntoView {
     let player = use_player();
+    // ANF-011 (Kann): Titel auf dem Sperrbildschirm, Play/Pause von dort
+    Effect::new(move |_| {
+        let current = player.track.with(|t| t.as_ref().map(|t| (t.title.clone(), t.subtitle.clone())));
+        crate::components::pwa::set_media_session(current);
+    });
     view! {
         {move || {
             player
@@ -119,7 +124,7 @@ pub fn PlayerBar() -> impl IntoView {
                         <div class="h-28" aria-hidden="true"></div>
                         <section
                             aria-label="Player"
-                            class="fixed inset-x-0 bottom-[5.25rem] z-30 px-3 md:bottom-4"
+                            class="fixed inset-x-0 bottom-[calc(4.25rem+max(1rem,env(safe-area-inset-bottom)))] z-30 px-3 md:bottom-4"
                         >
                             <div class="container mx-auto flex flex-wrap items-center gap-3 rounded-box border border-base-300 bg-base-200 p-3 sm:flex-nowrap">
                                 <div class="min-w-0 flex-1">

@@ -34,7 +34,8 @@ docker compose up --build        # App + PostgreSQL + Icecast im Container (ANF-
 
 ```
 src/
-  main.rs          Server-Start (nur ssr): Pool, Migrationen, Axum-Router
+  main.rs          Server-Start (nur ssr): Pool, Migrationen, Port
+  server.rs        Axum-Router (nur ssr, auch von den Tests genutzt)
   lib.rs           Module + hydrate()-Einstieg für WASM
   app.rs           shell() (HTML-Gerüst) und <App/> mit Router
   state.rs         AppState (LeptosOptions + PgPool), nur ssr
@@ -45,12 +46,13 @@ src/
   radio/           Radio: Sendeplan + Archiv (ANF-007), gleicher Aufbau
   datetime.rs      Datum/Uhrzeit auf Deutsch, Wochen-Hilfen (Server+Browser)
   components/      Wiederverwendbare UI-Komponenten (article.rs/product.rs/event.rs: Felder, Badge, Lösch-Dialog, Flash;
-                   navbar.rs: Kopfzeile + Leiste unten; player.rs: Radio-Player; cart.rs: Warenkorb; ui.rs: Chip, Seitenkopf)
+                   navbar.rs: Kopfzeile + Leiste unten; player.rs: Radio-Player; cart.rs: Warenkorb; ui.rs: Chip, Seitenkopf;
+                   pwa.rs: Offline-Badge, „App installieren“, Update-Hinweis – Brücke zu public/pwa.js)
   pages/           Eine Datei pro Seite/Route
 style/tailwind.css Tailwind-Einstieg mit @plugin "daisyui"
 migrations/        sqlx-Migrationen (laufen beim Serverstart)
 tests/             Integrationstests gegen PostgreSQL (eine Datei pro ANF)
-public/            Statische Dateien
+public/            Statische Dateien (PWA, ANF-011: manifest.webmanifest, sw.js, pwa.js, icons/)
 docs/              Projekt-Dokumentation
   features/        Anforderungen ANF-xxx, eine Datei pro Feature
 ```
@@ -69,6 +71,7 @@ docs/              Projekt-Dokumentation
 - **sqlx 0.9** akzeptiert nur feste SQL-Strings (`&'static str`). Kein `format!` für SQL.
 - **Bilder** nur mit Bildnachweis und nur aus freien Quellen (z. B. Wikimedia Commons). Lizenz in `public/images/artikel/CREDITS.json` eintragen.
 - **`public/`:** `cargo leptos watch` übernimmt neue Dateien nicht immer zuverlässig. Im Zweifel den Watcher neu starten.
+- **Service Worker (ANF-011):** Bei jeder Änderung an `public/sw.js` die `VERSION` darin erhöhen. Neue Server-only-Pfade, die nie gecacht werden dürfen, in `NEVER` eintragen.
 - `wasm-bindgen` ist exakt gepinnt – Version nur zusammen mit der wasm-bindgen-CLI ändern.
 - **Docker (ANF-010):** Neue Umgebungsvariablen auch in `.env.example` und beim Dienst `app` in `docker-compose.yml` eintragen. Neue Ordner, die der Build braucht, nicht in `.dockerignore` ausschließen.
 - Sprache in UI und Doku: Deutsch.

@@ -13,6 +13,7 @@ pub mod eventliste_event;
 pub mod home;
 pub mod news;
 pub mod not_found;
+pub mod offline;
 pub mod product_detail;
 pub mod product_edit;
 pub mod product_list;

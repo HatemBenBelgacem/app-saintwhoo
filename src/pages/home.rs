@@ -15,6 +15,7 @@ use crate::events::api::upcoming_events;
 use crate::events::model::{EventCard, EventRange, msg as event_msg};
 use crate::components::news::NewsRow;
 use crate::components::product::ProductCover;
+use crate::components::pwa::IosInstallHint;
 use crate::pages::radio::LiveCard;
 use crate::products::api::shop_products;
 use crate::products::model::{ShopItem, ShopSort, format_chf, msg as product_msg};
@@ -30,6 +31,7 @@ pub fn HomePage() -> impl IntoView {
     view! {
         <div class="py-4 md:py-8">
             <h1 class="sr-only">"Saintwhoo – Techno News, Events, Radio und Merch"</h1>
+            <IosInstallHint />
             // Handy: Live, News, Events untereinander (Reihenfolge wie im Entwurf).
             // Desktop: links Live + Events, rechts News über beide Zeilen.
             <div class="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:grid-rows-[auto_1fr] lg:gap-x-10">

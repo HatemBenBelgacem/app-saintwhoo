@@ -58,6 +58,23 @@ Quelle: Claude-Design-Canvas „Techno App Designvorschlag“ (Version 1).
 - [ ] Produkte und Artikel mit passender Kategorie/Rubrik versehen (bestehende Daten: „Sonstiges“/„Meldung“)
 - [ ] Offen, braucht Benutzerkonten: Anmelden, „Folge deinen DJs“, Events „Merken“/„Warteliste“
 - [ ] Offen: Kasse/Bestellung, Größenauswahl
+
+## ANF-011 PWA
+
+- [x] ANF-011 PWA – spezifiziert ([features/ANF-011](features/ANF-011-pwa.md))
+- [x] Icons gestalten (192, 512, maskable 512, Apple 180, favicon.svg) in `public/icons/` – geometrisches „S“, selbst gezeichnet
+- [x] `public/manifest.webmanifest` (inkl. Shortcuts) + `<link>`/iOS-Meta-Tags in `shell()`
+- [x] `public/sw.js` mit Caching-Regeln (Stream, Range, `/api/*` nie cachen), Registrierung in `public/pwa.js`
+- [x] Route `/offline` (`src/pages/offline.rs`), Service Worker leitet offline auf `/offline?ziel=…` um
+- [x] Knopf „App installieren“, Offline-Badge in der Kopfzeile, Hinweis „Neue Version verfügbar – Neu laden“, iOS-Hinweis auf der Startseite
+- [x] Media Session im Radio-Player (Kann)
+- [x] Router nach `src/server.rs` ausgelagert (für Tests); `sw.js` mit `Cache-Control: no-cache`
+- [x] Tests: `tests/anf_011_pwa.rs` (AK-1, AK-4, AK-6/7, Content-Types)
+- [x] AK-1, AK-4 bis AK-7, AK-9, AK-12 lokal mit Chrome (Playwright, Server gestoppt = offline) geprüft
+- [ ] Playwright-Tests dauerhaft in `end2end/` anlegen (gibt es noch nicht)
+- [ ] Redaktionsformulare offline deaktivieren (heute nur Hinweis „Nur online möglich“ im Redaktions-Menü)
+- [ ] AK-2, AK-3, AK-11 (Lighthouse), AK-14 auf echten Geräten / gegen Railway prüfen
+- [ ] Bei jeder Änderung an `public/sw.js`: `VERSION` erhöhen
   - [ ] Bilder hochladen (statt Adresse eintippen)
 - [ ] Datenmodell in `system-design.md` entwerfen
 
