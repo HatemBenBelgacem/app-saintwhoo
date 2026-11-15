@@ -50,7 +50,7 @@ Jede Anforderung hat eine eigene Datei in [features/](features/).
 | NFA-04 | SQL nur mit Bind-Parametern (Schutz vor SQL-Injection) | M |
 | NFA-05 | Geheimnisse (DB-Passwort usw.) nur in `.env` / Umgebung, nie im Git | M |
 | NFA-06 | Seitenaufbau < 1 s im lokalen Netz | S |
-| NFA-07 | Immer dunkle Ansicht (eigenes DaisyUI-Theme `saintwhoo`, ANF-009), auch bei hellem System *(geändert 14.11.2026, vorher „immer hell“)* | M |
+| NFA-07 | Standard ist die dunkle Ansicht (DaisyUI-Theme `saintwhoo`, ANF-009), auch bei hellem System. Oben rechts lässt sich auf Hell (`saintwhoo-hell`) umschalten; die Wahl bleibt im Browser gespeichert *(geändert 15.11.2026, vorher „immer dunkel“)* | M |
 | NFA-08 | Barrierearm: semantisches HTML, Kontraste, Tastaturbedienung | S |
 
 ## 5. Technische Rahmenbedingungen

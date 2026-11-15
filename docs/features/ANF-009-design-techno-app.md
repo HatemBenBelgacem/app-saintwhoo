@@ -24,7 +24,9 @@ Saintwhoo wird zur App für Techno-Fans: News über DJs, Events, Radio und Merch
 | Text | `#F3F3EF` | `base-content`, `neutral` |
 | Akzent (Acid-Gelb) | `#C6FF1A` | `primary`, `accent` |
 
-- Eigenes DaisyUI-Theme `saintwhoo` in `style/tailwind.css`. **Nur dunkel**, ersetzt NFA-07 („immer hell“).
+- Eigenes DaisyUI-Theme `saintwhoo` in `style/tailwind.css`. **Dunkel ist Standard**, auch bei hellem System.
+- **Helles Theme** `saintwhoo-hell` *(ergänzt 15.11.2026, Designvorschlag Version 1)*: Hintergrund `#F4F4EF`, Fläche `#FFFFFF`, Linie `#DCDCD5`, gedämpft `#5C5C64`, Text `#0B0B0C`. Akzentflächen (`primary`) sind schwarz mit Acid-Gelb als Schrift.
+- **Umschalter** oben rechts in der Kopfzeile (runder Knopf, 44 px, `aria-label` „Hellen/Dunklen Modus aktivieren“). `public/theme.js` setzt `data-theme` vor dem ersten Zeichnen und merkt sich die Wahl im `localStorage` (`saintwhoo-theme`).
 - Schriften: **Space Grotesk 700** für Titel und Zahlen (`font-display`), **Inter 400–600** für Text (`font-sans`). Beide von Google Fonts.
 - Runde Karten (20 px), Pillen-Knöpfe, keine Schatten. Touch-Ziele mindestens 44 px.
 
@@ -78,6 +80,7 @@ Ersetzt das Magazin-Layout aus ANF-003 (Aufmacher, Raster, Liste). Die Regeln �
 | AK-6 | ein Produkt mit Bestand 2 | dreimal „+“ getippt wird | sind 2 Stück im Warenkorb, der Knopf ist danach gesperrt |
 | AK-7 | ein ausverkauftes Produkt | der Shop geöffnet wird | zeigt die Karte „Ausverkauft“ und keinen „+“-Knopf |
 | AK-8 | Produkte im Warenkorb | Menge geändert oder entfernt wird | stimmen Anzahl und Summe |
+| AK-9 | eine beliebige Seite im dunklen Modus | der Umschalter oben rechts angetippt wird | wird die Seite hell (`#F4F4EF`); nach dem Neuladen bleibt sie hell, ohne kurz dunkel aufzublitzen |
 
 AK-4/5: `tests/anf_005.rs` läuft weiter, Kategorie/Marke in Unit-Tests `src/products/model.rs`. AK-6/8: Unit-Tests `src/components/cart.rs` (Logik). AK-1 bis 3 und 7: Screenshots bzw. Browser.
 
@@ -86,4 +89,3 @@ AK-4/5: `tests/anf_005.rs` läuft weiter, Kategorie/Marke in Unit-Tests `src/pro
 - **Anmelden**, „Folge deinen DJs“, „Merken“, „Warteliste“ – brauchen Benutzerkonten
 - Kasse, Bezahlung, Bestellungen
 - Größenauswahl bei Kleidung
-- Helles Theme

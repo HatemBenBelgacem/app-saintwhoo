@@ -171,7 +171,7 @@ Jeder neue Datensatz-Typ folgt dem Artikel-Muster:
 ## 5. Styling
 
 - Tailwind CSS 4 wird von `cargo-leptos` gebaut (`tailwind-input-file`), DaisyUI wird als Plugin aus `node_modules` geladen.
-- Theme: eigenes dunkles DaisyUI-Theme `saintwhoo` (14.11.2026, Designvorschlag „Techno App“, ANF-009). `data-theme="saintwhoo"` und `color-scheme: dark` am `<html>`. Farben stehen als Tokens in `style/tailwind.css`.
+- Theme: eigenes dunkles DaisyUI-Theme `saintwhoo` (14.11.2026, Designvorschlag „Techno App“, ANF-009). `data-theme="saintwhoo"` am `<html>`; helles Theme `saintwhoo-hell` per Umschalter (`components/theme.rs` → `public/theme.js`, Wahl im `localStorage`, wird vor dem ersten Zeichnen gesetzt). Farben stehen als Tokens in `style/tailwind.css`.
 - Schriften: Inter (`font-sans`) und Space Grotesk (`font-display`) über Google Fonts im `shell()`.
 - Seitenrahmen in `App`: Kopfzeile (`Navbar`), Leiste unten auf dem Handy (`BottomNav`), Player-Leiste (`PlayerBar`). Player und Warenkorb liegen als Kontext in `App`, damit sie beim Navigieren erhalten bleiben.
 - Große Komponenten enden mit `.into_any()`. Sonst werden die Typnamen so lang, dass der macOS-Linker abbricht (`ld: Assertion failed … makeSymbolStringInPlace`).

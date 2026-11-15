@@ -8,4 +8,5 @@ pub mod news;
 pub mod player;
 pub mod product;
 pub mod pwa;
+pub mod theme;
 pub mod ui;

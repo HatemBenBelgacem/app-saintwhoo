@@ -3,7 +3,8 @@
 /* Tailwind soll die Klassen in den Leptos-Komponenten finden */
 @source "../src/**/*.rs";
 
-/* DaisyUI 5 – nur das eigene dunkle Theme (Designvorschlag „Techno App“, Version 1) */
+/* DaisyUI 5 – eigene Themes nach dem Designvorschlag „Techno App“:
+   `saintwhoo` (dunkel, Standard) und `saintwhoo-hell`. Umschalter: public/theme.js */
 @plugin "daisyui" {
   themes: false;
 }
@@ -51,10 +52,56 @@
   --noise: 0;
 }
 
+/* Helles Theme: Akzentflächen werden schwarz mit Acid-Gelb als Schrift (wie im Designvorschlag) */
+@plugin "daisyui/theme" {
+  name: "saintwhoo-hell";
+  default: false;
+  prefersdark: false;
+  color-scheme: light;
+
+  --color-base-100: #f4f4ef;
+  --color-base-200: #ffffff;
+  --color-base-300: #dcdcd5;
+  --color-base-content: #0b0b0c;
+
+  --color-primary: #0b0b0c;
+  --color-primary-content: #c6ff1a;
+  --color-secondary: #0b0b0c;
+  --color-secondary-content: #f4f4ef;
+  --color-accent: #0b0b0c;
+  --color-accent-content: #c6ff1a;
+  --color-neutral: #0b0b0c;
+  --color-neutral-content: #f4f4ef;
+
+  /* Dunklere Statusfarben, damit Text auf hellem Grund lesbar bleibt (4.5:1) */
+  --color-info: #0a6d91;
+  --color-info-content: #ffffff;
+  --color-success: #177a42;
+  --color-success-content: #ffffff;
+  --color-warning: #8f5200;
+  --color-warning-content: #ffffff;
+  --color-error: #c2301d;
+  --color-error-content: #ffffff;
+
+  --radius-selector: 2rem;
+  --radius-field: 2rem;
+  --radius-box: 1.25rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
 /* Schriften: Space Grotesk für Titel und Zahlen, Inter für Text */
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
   /* Gedämpfter Text (#9A9AA3) */
   --color-muted: #9a9aa3;
+}
+
+/* Gedämpfter Text im hellen Theme (#5C5C64) */
+[data-theme="saintwhoo-hell"] {
+  --color-muted: #5c5c64;
 }

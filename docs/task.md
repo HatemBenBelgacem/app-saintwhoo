@@ -53,7 +53,8 @@ Quelle: Claude-Design-Canvas „Techno App Designvorschlag“ (Version 1).
 - [ ] `RADIO_STREAM_URL` in `.env` setzen (lokal `http://localhost:8000/live`; Quelle für Produktion klären, mit HTTPS über Reverse-Proxy)
 - [ ] ANF-007 Bearbeiten von Sendungen und Mixe ergänzen (bisher nur Anlegen/Löschen)
 - [ ] ANF-007 AK-9 (Wiedergabe läuft beim Navigieren weiter) und AK-10 im Browser prüfen
-- [ ] ANF-009 AK-1 bis AK-3, AK-6 bis AK-8 im Browser prüfen bzw. als Playwright-Test (Klicks auf „+“, Warenkorb)
+- [x] ANF-009 Helles Theme `saintwhoo-hell` + Umschalter in der Kopfzeile (`public/theme.js`, SW `VERSION` v2)
+- [ ] ANF-009 AK-1 bis AK-3, AK-6 bis AK-9 im Browser prüfen bzw. als Playwright-Test (Klicks auf „+“, Warenkorb)
 - [ ] Warenkorb über Neuladen hinaus speichern (localStorage oder Server)
 - [ ] Produkte und Artikel mit passender Kategorie/Rubrik versehen (bestehende Daten: „Sonstiges“/„Meldung“)
 - [ ] Offen, braucht Benutzerkonten: Anmelden, „Folge deinen DJs“, Events „Merken“/„Warteliste“
@@ -81,7 +82,7 @@ Quelle: Claude-Design-Canvas „Techno App Designvorschlag“ (Version 1).
 ## Phase 2 – Grundfunktionen
 
 - [ ] Eigener Fehlertyp für Server-Funktionen
-- [x] Layout (Navbar, Footer, Leiste unten) – Theme-Umschalter entfällt (nur dunkel, ANF-009)
+- [x] Layout (Navbar, Footer, Leiste unten) – Hell/Dunkel-Umschalter oben rechts (ANF-009)
 - [ ] Authentifizierung (falls gefordert)
 - [ ] Erste fachliche Tabellen + Migrationen
 

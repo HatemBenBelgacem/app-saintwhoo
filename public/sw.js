@@ -4,7 +4,7 @@
 // Bei jeder Änderung an dieser Datei VERSION erhöhen: Beim `activate` werden
 // alle Caches gelöscht, die nicht zur aktuellen Version gehören.
 
-const VERSION = "v1";
+const VERSION = "v2";
 const SHELL = `saintwhoo-${VERSION}`; // App-Hülle, Seiten, /pkg
 const IMAGES = `saintwhoo-bilder-${VERSION}`; // /images/*, max. 60 Einträge
 const FONTS = `saintwhoo-fonts-${VERSION}`; // Google Fonts
@@ -16,6 +16,7 @@ const PRECACHE = [
   "/offline",
   "/manifest.webmanifest",
   "/pwa.js",
+  "/theme.js",
   "/icons/favicon.svg",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
@@ -87,7 +88,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(networkFirst(req, SHELL));
   } else if (url.pathname.startsWith("/images/")) {
     event.respondWith(cacheFirst(req, IMAGES, MAX_IMAGES));
-  } else if (url.pathname.startsWith("/icons/") || url.pathname === "/manifest.webmanifest" || url.pathname === "/pwa.js") {
+  } else if (url.pathname.startsWith("/icons/") || url.pathname === "/manifest.webmanifest" || url.pathname === "/pwa.js" || url.pathname === "/theme.js") {
     event.respondWith(cacheFirst(req, SHELL));
   }
   // alles andere: Browser-Standard

@@ -1,5 +1,5 @@
 //! Navigation nach dem Designvorschlag „Techno App“:
-//! - Kopfzeile mit Logo, Hauptbereichen (ab Tablet) und Redaktions-Menü
+//! - Kopfzeile mit Logo, Hauptbereichen (ab Tablet), Redaktions-Menü und Hell/Dunkel-Umschalter
 //! - Leiste unten mit fünf Symbolen (nur Handy)
 
 use leptos::html;
@@ -7,6 +7,7 @@ use leptos::prelude::*;
 use leptos_router::hooks::use_location;
 
 use crate::components::pwa::{InstallButton, OfflineBadge, use_pwa};
+use crate::components::theme::ThemeToggle;
 
 /// Ein Hauptbereich der App.
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -98,7 +99,7 @@ fn SectionIcon(section: Section) -> impl IntoView {
     }
 }
 
-/// Kopfzeile: Logo links, Bereiche in der Mitte (ab Tablet), Redaktion rechts.
+/// Kopfzeile: Logo links, Bereiche in der Mitte (ab Tablet), Redaktion und Theme rechts.
 #[component]
 pub fn Navbar() -> impl IntoView {
     let location = use_location();
@@ -135,6 +136,7 @@ pub fn Navbar() -> impl IntoView {
                 <div class="flex items-center gap-2">
                     <InstallButton />
                     <EditorMenu />
+                    <ThemeToggle />
                 </div>
             </div>
         </header>

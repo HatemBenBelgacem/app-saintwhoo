@@ -34,11 +34,13 @@ use crate::pages::{
 pub fn shell(options: LeptosOptions) -> impl IntoView {
     view! {
         <!DOCTYPE html>
-        <html lang="de" data-theme="saintwhoo" style="color-scheme: dark">
+        <html lang="de" data-theme="saintwhoo">
             <head>
                 <meta charset="utf-8" />
                 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
                 <meta name="theme-color" content="#0B0B0C" />
+                // Gespeichertes Theme (hell/dunkel) vor dem ersten Zeichnen setzen
+                <script src="/theme.js"></script>
                 // ANF-011: PWA – Manifest, Icons, iOS-Vollbild
                 <link rel="manifest" href="/manifest.webmanifest" />
                 <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml" />
