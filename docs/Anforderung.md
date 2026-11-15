@@ -10,11 +10,11 @@ Saintwhoo ist eine App für Techno-Fans: News über DJs, Releases und Events, ei
 
 | Rolle | Beschreibung |
 |---|---|
-| Redakteur:in | Erfasst und veröffentlicht Artikel (ANF-001, ANF-008), Events (ANF-006) und pflegt das Radio (ANF-007) |
-| Shop-Verwalter:in | Erfasst und pflegt Produkte für den Shop (ANF-005) |
+| Redakteur:in | Rolle *Redaktion* (ANF-012). Erfasst und veröffentlicht Artikel (ANF-001, ANF-008), Events (ANF-006) und pflegt das Radio (ANF-007) |
+| Shop-Verwalter:in | Rolle *Shop* (ANF-012). Erfasst und pflegt Produkte für den Shop (ANF-005) |
 | Besucher:in | Liest News (ANF-003, ANF-008), sieht Events (ANF-006), hört Radio (ANF-007), stöbert im Shop und legt Produkte in den Warenkorb (ANF-005, ANF-009) |
-| Benutzer (angemeldet) | _offen_ |
-| Admin | _offen_ |
+| Admin | Legt Benutzerkonten an, vergibt Rollen, sperrt Konten; darf alles (ANF-012) |
+| Fan (angemeldet) | _offen_ – Fan-Konten für „Folgen“, „Merken“, „Warteliste“ sind nicht Teil von ANF-012 |
 
 ## 3. Funktionale Anforderungen
 
@@ -33,6 +33,7 @@ Format: `ANF-<Nr>` (dreistellig) · Priorität **M**uss / **S**oll / **K**ann
 | [ANF-009](features/ANF-009-design-techno-app.md) | Design „Techno App“: Look, Navigation, Startseite, Shop-Filter, Warenkorb | M | umgesetzt |
 | [ANF-010](features/ANF-010-docker-container.md) | Docker-Container: App und PostgreSQL mit `docker compose` starten | S | umgesetzt |
 | [ANF-011](features/ANF-011-pwa.md) | PWA: App installieren, offline öffnen, Radio auf dem Sperrbildschirm | S | umgesetzt |
+| [ANF-012](features/ANF-012-benutzerverwaltung.md) | Benutzerverwaltung: Anmelden, Rollen, Verwaltung schützen, Konten verwalten | M | spezifiziert |
 
 Jede Anforderung hat eine eigene Datei in [features/](features/).
 
@@ -72,6 +73,6 @@ Jede Anforderung hat eine eigene Datei in [features/](features/).
 - ANF-005: Annahmen zu Währung, Bezeichnung „Produkt“/„Artikel“ und ausverkauften Produkten bestätigen
 - ANF-006: Datum, Ort und Tickets sind ergänzt. Ist die Beschreibung weiterhin Pflicht?
 - ANF-007: Woher kommt der Livestream (`RADIO_STREAM_URL`)? Mit welchem Recht werden Aufnahmen veröffentlicht?
-- Braucht es Benutzerkonten / Login? Der Designvorschlag setzt sie voraus für „Anmelden“, „Folge deinen DJs“, „Merken“ und „Warteliste“.
+- ANF-012: Annahmen bestätigen (keine Selbstregistrierung, kein E-Mail-Versand, drei feste Rollen, `/status` nur für Admins). Braucht es zusätzlich Fan-Konten für „Folge deinen DJs“, „Merken“ und „Warteliste“?
 - Soll der Shop echte Bestellungen annehmen (Kasse, Bezahlung)? Bis dahin ist der Warenkorb nur eine Merkliste im Browser.
 - Wo wird deployt (VPS, Cloud)? Das Docker-Image (ANF-010) ist die Grundlage dafür.

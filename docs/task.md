@@ -79,11 +79,24 @@ Quelle: Claude-Design-Canvas „Techno App Designvorschlag“ (Version 1).
   - [ ] Bilder hochladen (statt Adresse eintippen)
 - [ ] Datenmodell in `system-design.md` entwerfen
 
+## ANF-012 Benutzerverwaltung
+
+- [x] ANF-012 Benutzerverwaltung – spezifiziert ([features/ANF-012](features/ANF-012-benutzerverwaltung.md))
+- [ ] Annahmen mit dem Team klären (Selbstregistrierung, Passwort vergessen, Rollen)
+- [ ] Migrationen `users`, `sessions`, `login_attempts`
+- [ ] `src/auth.rs`: Argon2id, Sitzungs-Token, Cookie, `require_role`
+- [ ] Anmelden/Abmelden, Konto, Passwort ändern
+- [ ] Benutzer-CRUD für Admins mit Schutzregeln (letzter Admin, eigenes Konto)
+- [ ] Bestehende Server-Funktionen und Verwaltungsseiten absichern, „Kein Zugriff“ (403)
+- [ ] Origin-Prüfung, erster Admin aus `ADMIN_EMAIL`/`ADMIN_PASSWORD` (`.env.example`, `docker-compose.yml`)
+- [ ] Kopfzeile mit Konto-Menü; `public/sw.js` (`NEVER`, `VERSION`)
+- [ ] Tests `tests/anf_012.rs` (AK-1 bis AK-26)
+
 ## Phase 2 – Grundfunktionen
 
 - [ ] Eigener Fehlertyp für Server-Funktionen
 - [x] Layout (Navbar, Footer, Leiste unten) – Hell/Dunkel-Umschalter oben rechts (ANF-009)
-- [ ] Authentifizierung (falls gefordert)
+- [ ] Authentifizierung – siehe ANF-012
 - [ ] Erste fachliche Tabellen + Migrationen
 
 ## Phase 3 – Qualität & Betrieb
