@@ -55,7 +55,7 @@ pub fn ProductListPage() -> impl IntoView {
                 .map(|s| {
                     let label = s.map(ProductStatus::label).unwrap_or("Alle");
                     view! {
-                        <a role="tab" href=list_href(1, s) class="tab" class:tab-active=move || status() == s>
+                        <a role="tab" href=list_href(1, s) class="tab min-h-11" class:tab-active=move || status() == s>
                             {label}
                         </a>
                     }

@@ -15,6 +15,13 @@ const COVERS: [&str; 6] = [
     "bg-linear-to-br from-indigo-950 via-violet-900 to-fuchsia-900",
 ];
 
+/// Breite der Bildfläche: `w-full`, außer der Aufrufer setzt selbst eine
+/// Breite (z. B. `w-16` für Listen-Miniaturen). Sonst gewinnt `w-full`
+/// je nach Reihenfolge im CSS und die Miniatur wird zu breit (ANF-012).
+fn cover_width(class: &str) -> &'static str {
+    if class.split_whitespace().any(|c| c.starts_with("w-") || c.starts_with("!w-")) { "" } else { "w-full" }
+}
+
 /// Bildfläche. Mit `image` das echte Bild (zugeschnitten, Bildnachweis
 /// klein unten rechts), sonst Farbverlauf + Anfangsbuchstabe des Titels.
 /// `class` bestimmt Seitenverhältnis/Größe (z. B. `aspect-[3/2]`).
@@ -40,7 +47,7 @@ pub fn CoverImage(
     if let Some(img) = image {
         let credit = img.credit.clone();
         return view! {
-            <div class=format!("relative w-full overflow-hidden bg-base-300 {class}") title=img.credit>
+            <div class=format!("relative {} overflow-hidden bg-base-300 {class}", cover_width(class)) title=img.credit>
                 <img
                     src=img.url
                     alt=title
@@ -62,7 +69,7 @@ pub fn CoverImage(
     let letter = title.chars().find(|c| c.is_alphanumeric()).map(|c| c.to_uppercase().to_string()).unwrap_or_default();
     view! {
         <div
-            class=format!("relative w-full overflow-hidden {gradient} {class}")
+            class=format!("relative {} overflow-hidden {gradient} {class}", cover_width(class))
             role="img"
             aria-label=format!("{label}: {title}")
         >

@@ -55,7 +55,7 @@ fn SectionHead(title: &'static str, href: &'static str, more: &'static str) -> i
     view! {
         <div class="mb-3.5 flex items-center justify-between">
             <h2 class="font-display text-[1.4rem] font-bold">{title}</h2>
-            <a href=href class="inline-flex min-h-11 items-center text-[15px] font-medium text-primary" aria-label=more>
+            <a href=href class="inline-flex min-h-11 min-w-11 items-center justify-center text-[15px] font-medium text-primary" aria-label=more>
                 "Alle"
             </a>
         </div>
