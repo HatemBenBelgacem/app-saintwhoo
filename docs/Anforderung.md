@@ -1,6 +1,6 @@
 # Anforderungen
 
-> Stand: 14.11.2026 · Status: **Entwurf** – Richtung festgelegt durch den Designvorschlag „Techno App“ (ANF-009), weitere Anforderungen offen.
+> Stand: 18.11.2026 · Status: **Entwurf** – Richtung festgelegt durch den Designvorschlag „Techno App“ (ANF-009), weitere Anforderungen offen.
 
 ## 1. Ziel
 
@@ -33,6 +33,7 @@ Format: `ANF-<Nr>` (dreistellig) · Priorität **M**uss / **S**oll / **K**ann
 | [ANF-009](features/ANF-009-design-techno-app.md) | Design „Techno App“: Look, Navigation, Startseite, Shop-Filter, Warenkorb | M | umgesetzt |
 | [ANF-010](features/ANF-010-docker-container.md) | Docker-Container: App und PostgreSQL mit `docker compose` starten | S | umgesetzt |
 | [ANF-011](features/ANF-011-pwa.md) | PWA: App installieren, offline öffnen, Radio auf dem Sperrbildschirm | S | umgesetzt |
+| [ANF-012](features/ANF-012-responsive-layout.md) | Responsive Layout: alle Seiten auf Handy, Tablet und Desktop ohne seitliches Scrollen | M | spezifiziert |
 
 Jede Anforderung hat eine eigene Datei in [features/](features/).
 
@@ -45,7 +46,7 @@ Jede Anforderung hat eine eigene Datei in [features/](features/).
 | ID | Anforderung | Priorität |
 |---|---|---|
 | NFA-01 | Server-Side Rendering: Seiten sind ohne JavaScript lesbar, danach interaktiv (Hydration) | M |
-| NFA-02 | Responsive Design (Mobil bis Desktop) mit Tailwind/DaisyUI | M |
+| NFA-02 | Responsive Design (Mobil bis Desktop) mit Tailwind/DaisyUI, konkret in [ANF-012](features/ANF-012-responsive-layout.md) | M |
 | NFA-03 | Daten werden dauerhaft in PostgreSQL gespeichert; Schema nur über Migrationen | M |
 | NFA-04 | SQL nur mit Bind-Parametern (Schutz vor SQL-Injection) | M |
 | NFA-05 | Geheimnisse (DB-Passwort usw.) nur in `.env` / Umgebung, nie im Git | M |

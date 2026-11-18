@@ -78,6 +78,18 @@ Quelle: Claude-Design-Canvas „Techno App Designvorschlag“ (Version 1).
   - [ ] Bilder hochladen (statt Adresse eintippen)
 - [ ] Datenmodell in `system-design.md` entwerfen
 
+## ANF-012 Responsive Layout
+
+- [x] ANF-012 Responsive Layout – spezifiziert ([features/ANF-012](features/ANF-012-responsive-layout.md))
+- [ ] ANF-012 Annahmen bestätigen (Zielgeräte 390/412/768/1280 px, Zielbrowser)
+- [ ] ANF-012 Ist-Zustand im Browser prüfen (320, 390, 768, 1024, 1440 px) und Fehler sammeln
+- [ ] ANF-012 Kopfzeile bei 320 px anpassen (Logo, Offline-Badge, „App installieren“, Redaktions-Menü; AK-3)
+- [ ] ANF-012 Formulare einspaltig, Eingabefelder mit mindestens 16 px Schrift (AK-9, AK-10)
+- [ ] ANF-012 Verwaltungslisten bei 768 px prüfen: Tabelle scrollt, Aktionen erreichbar (AK-7, AK-8)
+- [ ] ANF-012 Schaltflächen und Links mindestens 44 × 44 px (AK-6)
+- [ ] ANF-012 Playwright-Tests in `end2end/` für die automatischen AK (siehe Abschnitt „Prüfung“)
+- [ ] ANF-012 Manuell auf iPhone und Android prüfen (AK-10, AK-12)
+
 ## Phase 2 – Grundfunktionen
 
 - [ ] Eigener Fehlertyp für Server-Funktionen
