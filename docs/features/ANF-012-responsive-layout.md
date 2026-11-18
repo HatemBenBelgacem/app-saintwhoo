@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Priorität** | Muss |
-| **Status** | spezifiziert (18.11.2026), noch nicht umgesetzt |
+| **Status** | in Umsetzung (Stand 18.11.2026): Breiten-Prüfung bestanden, Tests und Gerätetests offen |
 | **Rolle** | Besucher:in, Redaktion (Verwaltung) |
 
 **Beschreibung**
@@ -105,6 +105,8 @@ Breiten sind CSS-Pixel im Browser. Die Prüfung läuft automatisch mit Playwrigh
 - Die Umschaltung zwischen Karten und Tabelle bleibt rein per CSS (`hidden md:block` bzw. `md:hidden`), nicht per JavaScript.
 - Layout nur mit Tailwind- und DaisyUI-Klassen. Keine neuen CSS-Dateien (CLAUDE.md).
 - Design aus ANF-009 bleibt: keine neuen Farben, Schriften oder Komponenten.
+- Eine Regel in `style/tailwind.css` setzt die Mindesthöhe von Knöpfen und Feldern (44 px) und die Schrift in Feldern (16 px). So gilt sie überall, nicht nur in einzelnen Formularen.
+- Bei Bild-Miniaturen setzt der Aufrufer die Breite selbst (z. B. `w-16`). `CoverImage` setzt `w-full` nur, wenn keine Breite angegeben ist.
 
 ## Nicht Teil von ANF-012
 

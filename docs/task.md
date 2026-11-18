@@ -82,13 +82,18 @@ Quelle: Claude-Design-Canvas „Techno App Designvorschlag“ (Version 1).
 
 - [x] ANF-012 Responsive Layout – spezifiziert ([features/ANF-012](features/ANF-012-responsive-layout.md))
 - [ ] ANF-012 Annahmen bestätigen (Zielgeräte 390/412/768/1280 px, Zielbrowser)
-- [ ] ANF-012 Ist-Zustand im Browser prüfen (320, 390, 768, 1024, 1440 px) und Fehler sammeln
-- [ ] ANF-012 Kopfzeile bei 320 px anpassen (Logo, Offline-Badge, „App installieren“, Redaktions-Menü; AK-3)
-- [ ] ANF-012 Formulare einspaltig, Eingabefelder mit mindestens 16 px Schrift (AK-9, AK-10)
-- [ ] ANF-012 Verwaltungslisten bei 768 px prüfen: Tabelle scrollt, Aktionen erreichbar (AK-7, AK-8)
-- [ ] ANF-012 Schaltflächen und Links mindestens 44 × 44 px (AK-6)
+- [x] ANF-012 Ist-Zustand im Browser geprüft (320, 390, 768, 1024, 1440 px, 115 Messungen) – Fehler behoben (Commits 205c549, 9bccb04)
+- [x] ANF-012 Kopfzeile bei 320 px passt in eine Zeile (AK-3, Höhe überall 65 px)
+- [x] ANF-012 Formulare einspaltig, Eingabefelder mit 16 px Schrift (AK-9, AK-10; Regel in `style/tailwind.css`)
+- [x] ANF-012 Verwaltungslisten: kein Überlauf bei 320–1440 px; Tabelle ab 768 px, Karten darunter (AK-7, AK-8)
+- [x] ANF-012 Schaltflächen und Links mindestens 44 px hoch, Breite bei Text-Links 44 px (AK-6)
+- [x] ANF-012 Querformat 844 × 390 ohne seitliches Scrollen (AK-12, nur Breite geprüft)
+- [x] ANF-012 Ohne JavaScript: Navigation wie mit JavaScript (AK-14)
+- [ ] ANF-012 Leiste unten überdeckt keinen Inhalt, auch nicht mit Radio-Player (AK-5, noch nicht geprüft)
+- [ ] ANF-012 Produktbilder auf der Startseite prüfen: im Screenshot leere Flächen (vermutlich Lazy Loading, nicht bestätigt)
 - [ ] ANF-012 Playwright-Tests in `end2end/` für die automatischen AK (siehe Abschnitt „Prüfung“)
-- [ ] ANF-012 Manuell auf iPhone und Android prüfen (AK-10, AK-12)
+- [ ] ANF-012 Manuell auf iPhone und Android prüfen (AK-10 Zoomen beim Tippen, AK-12 Querformat visuell)
+- [ ] ANF-012 Annahmen bestätigen (Zielgeräte 390/412/768/1280 px, Zielbrowser)
 
 ## Phase 2 – Grundfunktionen
 
