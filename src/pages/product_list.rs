@@ -161,7 +161,7 @@ fn ProductCard(product: ProductSummary) -> impl IntoView {
     view! {
         <div class="card border border-base-300 bg-base-200">
             <div class="card-body p-4 gap-2">
-                <a href=format!("/produkte/{id}") class="card-title link link-hover break-words">{product.name.clone()}</a>
+                <a href=format!("/produkte/{id}") class="card-title link link-hover wrap-anywhere min-h-11 break-words">{product.name.clone()}</a>
                 <div class="flex flex-wrap items-center gap-2 text-sm">
                     <ProductStatusBadge status=product.status />
                     <span class="font-mono">{product.sku}</span>

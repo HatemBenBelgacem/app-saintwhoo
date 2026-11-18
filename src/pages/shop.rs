@@ -158,13 +158,13 @@ fn ShopCard(product: ShopItem) -> impl IntoView {
                 </Show>
             </a>
             <div class="flex min-w-0 flex-col gap-0.5">
-                <h2 class="text-[15px] font-semibold leading-snug break-words">
-                    <a href=link class="hover:underline">{product.name.clone()}</a>
+                <h2 class="text-[15px] font-semibold leading-snug break-words wrap-anywhere">
+                    <a href=link class="inline-flex min-h-11 items-center wrap-anywhere hover:underline">{product.name.clone()}</a>
                 </h2>
                 {brand.map(|b| view! { <span class="text-[13px] text-muted">{b}</span> })}
                 {low.map(|l| view! { <span class="text-[13px] text-warning">{l}</span> })}
             </div>
-            <div class="mt-auto flex min-h-11 items-center justify-between gap-2">
+            <div class="mt-auto flex min-h-11 flex-wrap items-center justify-between gap-x-2">
                 <span class="text-[15px] font-semibold whitespace-nowrap tabular-nums" class:text-muted=sold_out>{format_chf(product.price_cents)}</span>
                 <AddToCartButton id=product.id name=product.name price_cents=product.price_cents stock=product.stock />
             </div>

@@ -161,7 +161,7 @@ fn ArticleCard(article: ArticleSummary) -> impl IntoView {
     view! {
         <div class="card border border-base-300 bg-base-200">
             <div class="card-body p-4 gap-2">
-                <a href=format!("/artikel/{id}") class="card-title link link-hover">{article.title.clone()}</a>
+                <a href=format!("/artikel/{id}") class="card-title link link-hover wrap-anywhere min-h-11">{article.title.clone()}</a>
                 <div class="flex flex-wrap items-center gap-2 text-sm">
                     <StatusBadge status=article.status />
                     <span>{date_text(&article)}</span>

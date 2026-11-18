@@ -58,3 +58,18 @@
   /* Gedämpfter Text (#9A9AA3) */
   --color-muted: #9a9aa3;
 }
+
+/* ANF-012: Knöpfe und Felder mindestens 44 px hoch (Touch-Ziel),
+   Eingabefelder mit 16 px Schrift (iOS zoomt sonst beim Tippen) */
+.btn,
+.input,
+.select,
+.textarea {
+  min-height: 2.75rem;
+}
+
+.input,
+.select,
+.textarea {
+  font-size: 1rem;
+}

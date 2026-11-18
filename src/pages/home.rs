@@ -34,7 +34,7 @@ pub fn HomePage() -> impl IntoView {
             <IosInstallHint />
             // Handy: Live, News, Events untereinander (Reihenfolge wie im Entwurf).
             // Desktop: links Live + Events, rechts News über beide Zeilen.
-            <div class="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:grid-rows-[auto_1fr] lg:gap-x-10">
+            <div class="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:grid-rows-[auto_1fr] lg:gap-x-10">
                 <div class="lg:col-start-1 lg:row-start-1"><Live /></div>
                 <div class="lg:col-start-2 lg:row-span-2 lg:row-start-1"><News /></div>
                 <div class="lg:col-start-1 lg:row-start-2"><NextEvents /></div>
@@ -119,8 +119,8 @@ fn EventItem(event: EventCard) -> impl IntoView {
         <li class="flex gap-3.5 rounded-2xl border border-base-300 bg-base-200 p-3.5">
             <DateBlock starts_at=event.starts_at />
             <div class="flex min-w-0 flex-col justify-center gap-1">
-                <h3 class="font-semibold leading-snug break-words">
-                    <a href=link class="hover:underline">{event.title}</a>
+                <h3 class="font-semibold leading-snug break-words wrap-anywhere">
+                    <a href=link class="inline-flex min-h-11 items-center wrap-anywhere hover:underline">{event.title}</a>
                 </h3>
                 <p class="text-sm text-muted">{event.venue} " · " {event.city} " · " {time} " Uhr"</p>
                 <div><TicketBadge status=event.ticket_status /></div>
@@ -188,10 +188,10 @@ fn MerchCard(product: ShopItem) -> impl IntoView {
             <a href=link.clone() class="block overflow-hidden rounded-xl" tabindex="-1" aria-hidden="true">
                 <ProductCover id=product.id name=product.name.clone() image=product.image.clone() class="aspect-square" letter_size="text-7xl" show_credit=false />
             </a>
-            <h3 class="text-[15px] font-semibold leading-snug break-words">
-                <a href=link class="hover:underline">{product.name.clone()}</a>
+            <h3 class="text-[15px] font-semibold leading-snug break-words wrap-anywhere">
+                <a href=link class="inline-flex min-h-11 items-center wrap-anywhere hover:underline">{product.name.clone()}</a>
             </h3>
-            <div class="mt-auto flex min-h-11 items-center justify-between gap-2">
+            <div class="mt-auto flex min-h-11 flex-wrap items-center justify-between gap-x-2">
                 <span class="text-[15px] text-muted whitespace-nowrap tabular-nums">{format_chf(product.price_cents)}</span>
                 <AddToCartButton id=product.id name=product.name price_cents=product.price_cents stock=product.stock />
             </div>

@@ -144,7 +144,7 @@ fn EventCardAdmin(event: EventSummary) -> impl IntoView {
                 <div class="flex gap-3">
                     <EventCover id title=event.title.clone() image=event.image.clone() class="aspect-square w-16 shrink-0 rounded-lg" letter_size="text-4xl" show_credit=false />
                     <div class="min-w-0">
-                        <a href=format!("/events/{id}") class="card-title link link-hover break-words">{event.title.clone()}</a>
+                        <a href=format!("/events/{id}") class="card-title link link-hover wrap-anywhere min-h-11 break-words">{event.title.clone()}</a>
                         <p class="text-sm">{format_when(event.starts_at)} " · " {event.city}</p>
                     </div>
                 </div>

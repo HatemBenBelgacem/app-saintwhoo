@@ -107,7 +107,7 @@ pub fn Navbar() -> impl IntoView {
         <header class="sticky top-0 z-30 border-b border-base-300 bg-base-100/95 pt-[env(safe-area-inset-top)] backdrop-blur">
             <div class="container mx-auto flex h-16 items-center justify-between gap-4 px-4">
                 <div class="flex items-center gap-2">
-                    <a href="/" class="font-display text-2xl font-bold tracking-tight">"Saintwhoo"</a>
+                    <a href="/" class="inline-flex min-h-11 items-center font-display text-2xl font-bold tracking-tight">"Saintwhoo"</a>
                     <OfflineBadge />
                 </div>
 
@@ -161,14 +161,14 @@ fn EditorMenu() -> impl IntoView {
                     <li class="px-3 py-2 text-sm text-warning">"Nur online möglich"</li>
                 </Show>
                 <li class="menu-title">"Inhalte pflegen"</li>
-                <li><a href="/artikel">"Artikel"</a></li>
-                <li><a href="/events">"Events"</a></li>
-                <li><a href="/radio/verwaltung">"Radio"</a></li>
-                <li><a href="/produkte">"Produkte"</a></li>
+                <li><a href="/artikel" class="flex min-h-11 items-center">"Artikel"</a></li>
+                <li><a href="/events" class="flex min-h-11 items-center">"Events"</a></li>
+                <li><a href="/radio/verwaltung" class="flex min-h-11 items-center">"Radio"</a></li>
+                <li><a href="/produkte" class="flex min-h-11 items-center">"Produkte"</a></li>
                 <li class="menu-title">"Neu"</li>
-                <li><a href="/artikel/neu">"Neuer Artikel"</a></li>
-                <li><a href="/events/neu">"Neues Event"</a></li>
-                <li><a href="/produkte/neu">"Neues Produkt"</a></li>
+                <li><a href="/artikel/neu" class="flex min-h-11 items-center">"Neuer Artikel"</a></li>
+                <li><a href="/events/neu" class="flex min-h-11 items-center">"Neues Event"</a></li>
+                <li><a href="/produkte/neu" class="flex min-h-11 items-center">"Neues Produkt"</a></li>
             </ul>
         </details>
     }

@@ -10,10 +10,10 @@ use crate::components::magazine::{CoverImage, reading_time_text};
 pub fn NewsRow(article: ArticleTeaser, #[prop(default = "h3")] heading: &'static str) -> impl IntoView {
     let link = format!("/beitrag/{}", article.id);
     let meta = format!("{} · {}", format_date_long(article.published_on), reading_time_text(article.reading_minutes));
-    let title = view! { <a href=link.clone() class="hover:underline">{article.title.clone()}</a> };
+    let title = view! { <a href=link.clone() class="inline-flex min-h-11 items-center wrap-anywhere hover:underline">{article.title.clone()}</a> };
     let title = match heading {
-        "h2" => view! { <h2 class="font-semibold leading-snug break-words hyphens-auto">{title}</h2> }.into_any(),
-        _ => view! { <h3 class="font-semibold leading-snug break-words hyphens-auto">{title}</h3> }.into_any(),
+        "h2" => view! { <h2 class="font-semibold leading-snug break-words wrap-anywhere hyphens-auto">{title}</h2> }.into_any(),
+        _ => view! { <h3 class="font-semibold leading-snug break-words wrap-anywhere hyphens-auto">{title}</h3> }.into_any(),
     };
     view! {
         <article class="flex gap-3.5 rounded-2xl border border-base-300 bg-base-200 p-3.5">

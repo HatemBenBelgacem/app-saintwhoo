@@ -116,7 +116,7 @@ fn Results(data: NewsPage, q: String, c: Option<ArticleCategory>) -> impl IntoVi
     let count = if total == 1 { "1 Meldung".to_string() } else { format!("{total} Meldungen") };
     view! {
         <p class="mt-6 mb-3 text-sm text-muted" role="status">{count}</p>
-        <ul class="grid gap-3 md:grid-cols-2">
+        <ul class="grid grid-cols-1 gap-3 md:grid-cols-2">
             {data.items.into_iter().map(|a| view! { <li><NewsRow article=a heading="h2" /></li> }).collect_view()}
         </ul>
         <Show when=move || { total_pages > 1 }>

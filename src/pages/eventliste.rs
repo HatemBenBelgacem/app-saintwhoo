@@ -78,7 +78,7 @@ fn Listing(listing: EventListing) -> impl IntoView {
         </div>
         <Show when=move || has_rest>
             <h2 class="mt-10 mb-4 font-display text-2xl font-bold">"Demnächst"</h2>
-            <ul class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            <ul class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {rest.clone().into_iter().map(|e| view! { <Row event=e /> }).collect_view()}
             </ul>
         </Show>
@@ -113,7 +113,7 @@ fn Highlight(event: EventCard, today: NaiveDate) -> impl IntoView {
                 </div>
                 <p class="text-sm text-muted">{format_when(event.starts_at)}</p>
                 <h2 class="font-display text-3xl font-bold leading-tight break-words md:text-4xl">
-                    <a href=link class="hover:underline">{event.title.clone()}</a>
+                    <a href=link class="inline-flex min-h-11 items-center wrap-anywhere hover:underline">{event.title.clone()}</a>
                 </h2>
                 <p class="text-muted">{event.venue.clone()} " · " {event.city.clone()}</p>
                 {lineup.map(|l| view! { <p>{l}</p> })}
@@ -143,8 +143,8 @@ fn Row(event: EventCard) -> impl IntoView {
         <li class="flex gap-3.5 rounded-2xl border border-base-300 bg-base-200 p-3.5">
             <DateBlock starts_at=event.starts_at />
             <div class="flex min-w-0 flex-1 flex-col gap-1">
-                <h3 class="font-semibold leading-snug break-words">
-                    <a href=link class="hover:underline">{event.title.clone()}</a>
+                <h3 class="font-semibold leading-snug break-words wrap-anywhere">
+                    <a href=link class="inline-flex min-h-11 items-center wrap-anywhere hover:underline">{event.title.clone()}</a>
                 </h3>
                 <p class="text-sm text-muted">{event.venue.clone()} " · " {event.city.clone()} " · " {time} " Uhr"</p>
                 {lineup.map(|l| view! { <p class="text-sm">{l}</p> })}
